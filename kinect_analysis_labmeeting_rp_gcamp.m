@@ -15,7 +15,7 @@ movie_fs=30;
 ms_per_frame=(1/movie_fs)*1e3;
 
 nidaq_data=kinect_nidaq2mat;
-gcamp_trace=nidaq_data(1,:);
+gcamp_trace=nidaq_data(2,:);
 gcamp_ts=nidaq_data(end,:);
 
 depth_ts=kinect_read_csv;
@@ -35,8 +35,8 @@ rps=zscore(zscore(rps)');
 % get delta coefficients
 
 rps_deltas=markolab_deltacoef(rps,4); % delta coefficients, lag of 4 frames
-delta_score=sum(abs(rps_deltas)>.3); % binarize deltas
-h=normpdf([-10:10],0,2); % gauss smooth
+delta_score=sum(abs(rps_deltas)>.1); % binarize deltas
+h=normpdf([-20:20],0,.5); % gauss smooth
 delta_score=conv(delta_score,h,'same'); % convolve
 
 thresh=mean(delta_score)+.5*std(delta_score);
@@ -60,9 +60,9 @@ nidaq_fs=round(1./mean(diff(gcamp_ts)));
 [b,a]=ellip(4,.2,40,[20]/(1e3/2),'low');
 gcamp_trace_ds=downsample(filtfilt(b,a,-gcamp_trace),nidaq_fs/new_fs);
 gcamp_ts_ds=downsample(gcamp_ts,10);
-gcamp_trace_smooth=markolab_smooth(gcamp_trace_ds(:),round(tau*new_fs),'r','e');
-%[b2,a2]=butter(3,[1]/(new_fs/2),'low');
-%gcamp_trace_smooth=filtfilt(b,a,gcamp_trace_ds(:));
+%gcamp_trace_smooth=markolab_smooth(gcamp_trace_ds(:),round(tau*new_fs),'r','e');
+[b2,a2]=butter(3,[1]/(new_fs/2),'low');
+gcamp_trace_smooth=filtfilt(b,a,gcamp_trace_ds(:));
 %gcamp_trace_smooth=gcamp_trace_ds(:);
 gcamp_trace_detrended=fluolab_detrend(gcamp_trace_smooth,'fs',new_fs,'win',win_size);
 
@@ -73,7 +73,7 @@ gcamp_interp=interp1(gcamp_ts_ds,gcamp_trace_detrended,depth_ts,'linear','extrap
 %% xcorr between the two signals
 % bootstrap?
 
-nboots=10e3;
+nboots=1e3;
 bootvals_max=nan(1,nboots);
 bootvals_min=nan(1,nboots);
 
@@ -112,11 +112,12 @@ imagesc(depth_ts-min(depth_ts),[],filter(ones(3,1)/3,1,rps')');
 colormap(bone)
 axis off;
 ax(2)=subplot(3,1,2);
-plot(depth_ts-min(depth_ts),delta_score);
+plot(depth_ts-min(depth_ts),conv(delta_score,normpdf([-10:10],0,1.5),'same'));
 set(ax(2),'ydir','rev');
 axis off;
 ax(3)=subplot(3,1,3);
 plot(gcamp_ts_ds-min(depth_ts),gcamp_trace_detrended);
+ylim([-1 6]);
 box off;
 set(gca,'TickDir','out','TickLength',[.025 .025]);
 linkaxes(ax,'x');
@@ -133,8 +134,8 @@ plot(lags*ms_per_frame,obs_r);
 plot(lags*ms_per_frame,repmat(prctile(bootvals_max,99),size(lags)),'k--');
 plot([0 0],[-.2 .2],'k-');
 
-set(gca,'Layer','Top','xtick',[-400:100:400],'YTick',[0:.02:.12]);
-axis([-400 400 0 .1]);
+set(gca,'Layer','Top','xtick',[-400:100:400],'YTick',[0:.02:.2]);
+axis([-400 400 0 .2]);
 
 xticks=repmat(get(gca,'XTick'),[2 1]);
 yticks=repmat(get(gca,'YTick'),[2 1]);
