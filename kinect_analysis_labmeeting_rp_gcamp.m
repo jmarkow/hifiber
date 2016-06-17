@@ -44,8 +44,9 @@ idx=1:length(delta_score)-1;
 
 %block_onsets=delta_score(idx)<thresh&delta_score(idx+1)>thresh;
 [block_peaks,block_locs]=findpeaks(delta_score,'minpeakheight',thresh);
-ibi=diff((block_locs)*ms_per_frame);
 ms_per_frame=1/movie_fs*1e3;
+ibi=diff((block_locs)*ms_per_frame);
+
 
 bins=[0:100:2e3];
 n=histc(ibi,bins);
