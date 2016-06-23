@@ -6,7 +6,7 @@ function [RPS,SCORE,CHANGEPOINTS,THRESH]=kinect_analysis_changepoints(FEATURES,v
 
 
 delta_thresh=.3;
-delta_win=8;
+delta_win=4;
 smooth_sig=2;
 jl_bound_eps=.25;
 

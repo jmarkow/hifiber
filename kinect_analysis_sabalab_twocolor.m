@@ -32,14 +32,21 @@ features(mask2)=0;
 
 %%
 
+
 recon=U(:,1:rankcut)*S(1:rankcut,1:rankcut)*V(:,1:rankcut)'+mu;
 [rps,delta_score,changepoints,changethresh]=kinect_analysis_changepoints(recon','delta_thresh',.15,'smooth_sig',2);
 recon=reshape(recon,sqrt(size(recon,1)),sqrt(size(recon,1)),[]);
 
-%% process photometry
+%%
+% process photometry
 
-[gcamp_data,gcamp_ts]=kinect_analysis_proc_photometry(-photometry_traces(1,:),photometry_ts,'dff',1,'smooth_tau',.2);
+[gcamp_data,gcamp_ts]=kinect_analysis_proc_photometry(photometry_traces(1,:),photometry_ts,'dff',0,'smooth_tau',.1);
+[rcamp_data,gcamp_ts]=kinect_analysis_proc_photometry(photometry_traces(3,:),photometry_ts,'dff',0,'smooth_tau',.1);
+
+%gcamp_data=gcamp_data/1e2;
+
 gcamp_interp=interp1(gcamp_ts,gcamp_data,depth_ts,'linear','extrap');
+rcamp_interp=interp1(gcamp_ts,rcamp_data,depth_ts,'linear','extrap');
 
 % then plot everything
 
@@ -47,38 +54,51 @@ gcamp_interp=interp1(gcamp_ts,gcamp_data,depth_ts,'linear','extrap');
 %% xcorr between the two signals
 % bootstrap?
 
-bootvals_max=nan(1,nboots);
-bootvals_min=nan(1,nboots);
+bootvals_max_gcamp=nan(1,nboots);
+bootvals_min_gcamp=nan(1,nboots);
 
 for i=1:nboots
     scr=markolab_phase_scramble_1d(zscore(gcamp_interp),0);
     r=xcorr(zscore(scr),zscore(delta_score),100,'coeff');
-    bootvals_max(i)=max(r);
-    bootvals_min(i)=min(r);
+    bootvals_max_gcamp(i)=max(r);
+    bootvals_min_gcamp(i)=min(r);
 end
 
-[obs_r,lags]=xcorr(zscore(gcamp_interp),zscore(delta_score),100,'coeff');
+[gcamp_obs_r,lags]=xcorr(zscore(gcamp_interp),zscore(delta_score),100,'coeff');
+%%
 
+bootvals_max=nan(1,nboots);
+bootvals_min=nan(1,nboots);
+
+for i=1:nboots
+    scr=markolab_phase_scramble_1d(zscore(rcamp_interp),0);
+    r=xcorr(zscore(scr),zscore(delta_score),100,'coeff');
+    bootvals_max_rcamp(i)=max(r);
+    bootvals_min_rcamp(i)=min(r);
+end
+
+[rcamp_obs_r,lags]=xcorr(zscore(rcamp_interp),zscore(delta_score),100,'coeff');
 
 %%
 
 figure();
 ax(1)=subplot(4,1,1);
 imagesc(depth_ts-min(depth_ts),[],squeeze(mean(recon(40:60,:,:))));
-caxis([0 30]);
+colormap(winter);
 axis off;
 ax(2)=subplot(4,1,2);
-imagesc(depth_ts-min(depth_ts),[],filter(ones(5,1)/5,1,rps')');
+imagesc(depth_ts-min(depth_ts),[],filter(ones(3,1)/3,1,rps')');
 colormap(bone)
 axis off;
 ax(3)=subplot(4,1,3);
 plot(depth_ts-min(depth_ts),conv(delta_score,normpdf([-10:10],0,1.5),'same'));
 set(ax(3),'ydir','rev');
-ylim([changethresh max(delta_score)+eps]);
 axis off;
 ax(4)=subplot(4,1,4);
-plot(gcamp_ts-min(depth_ts),gcamp_data);
-ylim([-1 6]);
+plot(gcamp_ts-min(depth_ts),gcamp_data./max(gcamp_data));
+hold on;
+plot(gcamp_ts-min(depth_ts),rcamp_data./max(rcamp_data));
+ylim([-.1 1]);
 box off;
 set(gca,'TickDir','out','TickLength',[.025 .025]);
 linkaxes(ax,'x');
@@ -110,17 +130,3 @@ h3=plot(repmat([xlimits(1);xlimits(2)],[1 size(yticks,2)]),yticks,'k-','color',[
 uistack(h2,'bottom');
 uistack(h3,'bottom');
 uistack(h1,'bottom');
-
-
-%%
-[Uraw Sraw Vraw]=kinect_randsvd_power(single(reshape(use_data,[],size(use_data,3))),400,2);
-
-figure();
-subplot(1,2,1);
-kinect_eigenmontage(U,'k',20,'clip',75);
-subplot(1,2,2);
-kinect_eigenmontage(Uraw,'k',20,'clip',75);
-% get usv from raw data
-
-
-
