@@ -39,7 +39,11 @@ down_fact=round(fs/new_fs);
 gcamp_trace_ds=downsample(filtfilt(b,a,DATA),down_fact);
 PROC_TS=downsample(TS,down_fact);
 
-gcamp_trace_smooth=markolab_smooth(gcamp_trace_ds(:),round(smooth_tau*new_fs),'r',smooth_type);
+if smooth_tau>0
+    gcamp_trace_smooth=markolab_smooth(gcamp_trace_ds(:),round(smooth_tau*new_fs),'r',smooth_type);
+else
+    gcamp_trace_smooth=gcamp_trace_ds(:);
+end
 PROC_DATA=fluolab_detrend(gcamp_trace_smooth,'fs',new_fs,'win',detrend_win_size,'dff',dff);
 PROC_DATA=PROC_DATA(new_fs*detrend_win_size:end);
 PROC_TS=PROC_TS(new_fs*detrend_win_size:end);
