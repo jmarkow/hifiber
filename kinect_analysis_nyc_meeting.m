@@ -104,4 +104,4 @@ plot([0 0],[-1 1],'k-');
 set(gca,'Layer','Top','xtick',[corr_limits(1):.5:corr_limits(2)],'YTick',[0:.1:corr_limits(4)]);
 axis([corr_limits]);
 uistack(h1,'bottom');
-set(figs.xcorr,'position',[300 300 350 150]);
+set(figs.xcorr,'position',[300 300 350 150],'inverthardcopy','off','paperpositionmode','auto');
