@@ -10,7 +10,7 @@ smooth_tau=.3;
 new_fs=100;
 detrend_win_size=3;
 dff=1;
-
+detrend=true;
 nparams=length(varargin);
 
 if mod(nparams,2)>0
@@ -44,6 +44,11 @@ if smooth_tau>0
 else
     gcamp_trace_smooth=gcamp_trace_ds(:);
 end
-PROC_DATA=fluolab_detrend(gcamp_trace_smooth,'fs',new_fs,'win',detrend_win_size,'dff',dff);
+
+if detrend
+    PROC_DATA=fluolab_detrend(gcamp_trace_smooth,'fs',new_fs,'win',detrend_win_size,'dff',dff);
+else
+    PROC_DATA=gcamp_trace_smooth;
+end
 PROC_DATA=PROC_DATA(new_fs*detrend_win_size:end);
 PROC_TS=PROC_TS(new_fs*detrend_win_size:end);
