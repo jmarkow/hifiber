@@ -64,7 +64,7 @@ if ~isempty(REF)
 	signal_ch=setdiff(CH,REF);
 	signal_n=length(signal_ch);
 
-	photometry.ref=photometry.proc;
+	photometry.ref.ts=photometry.proc.ts;
 	photometry.ref.data=zeros(nsamples,signal_n);
 	photometry.ref.labels=signal_ch;
 
@@ -72,12 +72,15 @@ if ~isempty(REF)
 		photometry.ref.data(:,i)=fluolab_rereference(...
 			photometry.proc.data(:,photometry.proc.labels==signal_ch(i)),...
 			photometry.proc.data(:,photometry.proc.labels==REF));
+		photometry.ref.data(:,i)=1e2*photometry.ref.data(:,i)...
+			./photometry.proc.data_baseline(:,photometry.proc.labels==signal_ch(i));
 	end
 
 	if opts.clip
 		photometry.ref.data(photometry.ref.data<0)=0;
 	end
-	photometry.ref.units='volts over reference';
+
+	photometry.ref.units='dF/F_0 (percent)';
 
 end
 
@@ -93,8 +96,16 @@ for i=1:length(data_types)
 		kinect_ts,'linear','extrap');
 	photometry.kin.(data_types{i}).labels=photometry.(data_types{i}).labels;
 	photometry.kin.(data_types{i}).ts=kinect_ts;
+	photometry.kin.(data_types{i}).units=photometry.(data_types{i}).units;
 end
 
+data_types=fieldnames(photometry);
+
+for i=1:length(data_types)
+	photometry.(data_types{i})=orderfields(photometry.(data_types{i}));
+end
+
+photometry.parameters=opts;
 save('analysis/photometry.mat','photometry');
 
 % load in the timestamps
