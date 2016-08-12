@@ -4,6 +4,10 @@ function [RPS,SCORE,CHANGEPOINTS,THRESH]=kinect_analysis_changepoints(FEATURES,v
 %
 %
 
+if ndims(squeeze(FEATURES))==3
+	[r,c,z]=size(FEATURES);
+	FEATURES=reshape(FEATURES,r*c,z)';
+end
 
 delta_thresh=.3;
 delta_win=4;
