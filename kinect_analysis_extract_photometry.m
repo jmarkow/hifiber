@@ -46,8 +46,23 @@ kinect_ts=kinect_read_csv(fullfile(pathname,'depth_ts.txt'));
 kinect_ts=kinect_ts(:,2);
 mat=kinect_nidaq2mat(DATA)';
 
+if opts.dc_offset_split
+	fprintf('Adding DC offsets...\n');
+	fprintf('DC offset scale: %g\n',opts.dc_offset_scale);
+	for i=1:length(CH)
+		fprintf('CH %i DC CH %i\n',CH(i),CH(i)+opts.dc_offset_ch);
+		mat(:,CH(i))=mat(:,CH(i))+mat(:,CH(i)+opts.dc_offset_ch)*opts.dc_offset_scale;
+	end
+end
+
 photometry.raw.ts=mat(:,end);
 photometry.raw.data=mat(:,CH);
+
+if opts.invert_sig
+	fprintf('Inverting signal...\n');
+	photometry.raw.data=-photometry.raw.data;
+end
+
 photometry.raw.units='volts';
 photometry.raw.labels=CH;
 
@@ -106,6 +121,10 @@ for i=1:length(data_types)
 end
 
 photometry.parameters=opts;
+if ~exist('analysis','dir')
+	mkdir('analysis');
+end
+
 save('analysis/photometry.mat','photometry');
 
 % load in the timestamps

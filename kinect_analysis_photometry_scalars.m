@@ -12,8 +12,8 @@ load(fullfile(DIR,'photometry.mat'),'photometry');
 % option to set random seed for reproducibility?
 
 file_save=true;
-nrands=1e3;
-lags=200; % in frames
+nrands=1e4;
+lags=100; % in frames
 deriv_win=5;
 lags_vec=[-lags:lags];
 
@@ -21,16 +21,13 @@ lags_vec=[-lags:lags];
 
 use_scalars=scalars;
 scalar_names=fieldnames(use_scalars);
-scalar_names(strcmp(scalar_names,'centroid'))=[];
+exclude=~cellfun(@isempty,regexp(scalar_names,'(centroid|skewness|theta)'));
+scalar_names(exclude)=[];
 
 for i=1:length(scalar_names)
 	new_name=[ scalar_names{i} '_dt' ];
 	scalar_names{end+1}=new_name;
-	if strcmp(scalar_names{i},'angle')
-		use_scalars.(new_name)=angle(exp(1j.*markolab_deltacoef(scalars.(scalar_names{i}),deriv_win)));
-	else
-		use_scalars.(new_name)=markolab_deltacoef(scalars.(scalar_names{i}),deriv_win)';
-	end
+	use_scalars.(new_name)=markolab_deltacoef(scalars.(scalar_names{i}),deriv_win)';
 end
 
 scalar_names(strcmp(scalar_names,'angle'))=[]; % will need to come back to do linear-circular corr
