@@ -45,6 +45,7 @@ end
 kinect_ts=kinect_read_csv(fullfile(pathname,'depth_ts.txt'));
 kinect_ts=kinect_ts(:,2);
 mat=kinect_nidaq2mat(DATA)';
+fprintf('Found %i channels in %s\n',size(mat,2)-1,DATA);
 
 if opts.dc_offset_split
 	fprintf('Adding DC offsets...\n');
@@ -55,7 +56,7 @@ if opts.dc_offset_split
 	end
 end
 
-photometry.raw.ts=mat(:,end);
+photometry.raw.timestamps=mat(:,end);
 photometry.raw.data=mat(:,CH);
 
 if opts.invert_sig
@@ -66,8 +67,8 @@ end
 photometry.raw.units='volts';
 photometry.raw.labels=CH;
 
-[photometry.proc.data, photometry.proc.data_baseline, photometry.proc.ts]=...
-	kinect_analysis_proc_photometry(photometry.raw.data,photometry.raw.ts);
+[photometry.proc.data, photometry.proc.data_baseline, photometry.proc.timestamps]=...
+	kinect_analysis_proc_photometry(photometry.raw.data,photometry.raw.timestamps);
 photometry.proc.labels=CH;
 [nsamples,nchannels]=size(photometry.proc.data);
 photometry.proc.units='volts over baseline';
@@ -79,7 +80,7 @@ if ~isempty(REF)
 	signal_ch=setdiff(CH,REF);
 	signal_n=length(signal_ch);
 
-	photometry.ref.ts=photometry.proc.ts;
+	photometry.ref.timestamps=photometry.proc.timestamps;
 	photometry.ref.data=zeros(nsamples,signal_n);
 	photometry.ref.labels=signal_ch;
 
@@ -106,11 +107,11 @@ data_types(strcmp(data_types,'raw'))=[];
 
 for i=1:length(data_types)
 	photometry.kin.(data_types{i}).data=interp1(...
-		photometry.(data_types{i}).ts,...
+		photometry.(data_types{i}).timestamps,...
 		photometry.(data_types{i}).data,...
 		kinect_ts,'linear','extrap');
 	photometry.kin.(data_types{i}).labels=photometry.(data_types{i}).labels;
-	photometry.kin.(data_types{i}).ts=kinect_ts;
+	photometry.kin.(data_types{i}).timestamps=kinect_ts;
 	photometry.kin.(data_types{i}).units=photometry.(data_types{i}).units;
 end
 
@@ -125,6 +126,6 @@ if ~exist('analysis','dir')
 	mkdir('analysis');
 end
 
-save('analysis/photometry.mat','photometry');
+save('photometry.mat','photometry');
 
 % load in the timestamps

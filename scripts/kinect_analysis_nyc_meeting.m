@@ -30,7 +30,6 @@ features(mask2)=0;
 
 % clean up behavioral data
 
-
 [U S V mu]=kinect_randsvd_power_iter(features,[],[],3);
 recon=U(:,1:rankcut)*S(1:rankcut,1:rankcut)*V(:,1:rankcut)'+mu;
 [rps,delta_score,changepoints,changethresh]=kinect_analysis_changepoints(recon','delta_thresh',.05,'smooth_sig',2);
