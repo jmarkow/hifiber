@@ -110,6 +110,12 @@ for i=1:length(data_types)
 		photometry.(data_types{i}).timestamps,...
 		photometry.(data_types{i}).data,...
 		kinect_ts,'linear','extrap');
+    if isfield(photometry.(data_types{i}),'data_baseline')
+        photometry.kin.(data_types{i}).data_baseline=interp1(...
+            photometry.(data_types{i}).timestamps,...
+            photometry.(data_types{i}).data_baseline,...
+            kinect_ts,'linear','extrap');  
+    end
 	photometry.kin.(data_types{i}).labels=photometry.(data_types{i}).labels;
 	photometry.kin.(data_types{i}).timestamps=kinect_ts;
 	photometry.kin.(data_types{i}).units=photometry.(data_types{i}).units;
@@ -122,9 +128,7 @@ for i=1:length(data_types)
 end
 
 photometry.parameters=opts;
-if ~exist('analysis','dir')
-	mkdir('analysis');
-end
+
 
 save('photometry.mat','photometry');
 
