@@ -10,8 +10,9 @@
 
 % 15781
 
-mouse_name='15781';
-use_session=setdiff(8:22,[16 18:19]);
+mouse_name='15783';
+%use_session=setdiff(8:22,[16 18:19]);
+use_session=setdiff(6:13,11);
 use_photometry=photometry(use_session);
 use_scalars=scalars(use_session);
 use_metadata=metadata(use_session);
