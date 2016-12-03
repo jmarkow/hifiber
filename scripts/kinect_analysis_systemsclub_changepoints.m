@@ -12,7 +12,7 @@ max_lag=90;
 bin_smooth=2;
 nrands=1e3;
 beh_type_fields={'delta','delta_bin','delta_model','delta_bin_onsets','delta_bin_offsets','delta_bin_midpoints'};
-ca_type_fields={'ref'};
+ca_type_fields={'ref','proc1','proc2'};
 dir_list={};
 
 %%
@@ -31,6 +31,12 @@ use_photometry=photometry(use_session);
 use_rps=rps(use_session);
 use_labels=state_labels(use_session);
 use_frame_idx=frame_idx(use_session);
+
+if isfield(use_photometry{i}.kin,'ref')
+    ca_type_fields={'ref'};
+else
+    ca_type_fields={'proc1','proc2'};
+end
 
 % now what!?!?!?!
 
@@ -129,7 +135,13 @@ if exist('phase_randomized_photometry.mat','file')~=2
     
     for i=1:length(use_photometry)
         
-        ca_type_rnd.ref=use_photometry{i}.kin.ref.data(:,1);
+        
+        if isfield(use_photometry{i}.kin,'ref')
+            ca_type_rnd.ref=use_photometry{i}.kin.ref.data(:,1);
+        else
+            ca_type_rnd.proc1=use_photometry{i}.kin.proc.data(:,1);
+            ca_type_rnd.proc2=use_photometry{i}.kin.proc.data(:,2);
+        end
         
         for j=1:length(ca_type_fields)
             
@@ -181,7 +193,12 @@ for i=1:length(use_photometry)
     
     %     ca_type.gcamp=markolab_vec2mat(zscore(use_photometry{i}.kin.proc.data(:,1)./use_photometry{i}.kin.proc.data_baseline(:,1)),win_size,0);
     %     ca_type.autofluo=markolab_vec2mat(zscore(use_photometry{i}.kin.proc.data(:,2)./use_photometry{i}.kin.proc.data_baseline(:,2)),win_size,0);
-    ca_type.ref=markolab_vec2mat(zscore(use_photometry{i}.kin.ref.data(:,1)),win_size,0);
+    if isfield(use_photometry{i}.kin,'ref')
+        ca_type.ref=markolab_vec2mat(zscore(use_photometry{i}.kin.ref.data(:,1)),win_size,0);
+    else
+        ca_type.proc1=markolab_vec2mat(use_photometry{i}.kin.proc.data(:,1),win_size,0);
+        ca_type.proc2=markolab_vec2mat(use_photometry{i}.kin.proc.data(:,2),win_size,0);
+    end
     
     beh_type.delta=markolab_vec2mat(zscore(delta_score{i}),win_size,0);
     beh_type.delta_bin=markolab_vec2mat(zscore(delta_score_bin{i}),win_size,0);
@@ -205,8 +222,11 @@ end
 % phase rnd control
 
 upd=kinect_proctimer(nrands);
+rnd_summary=[];
 
 for ii=1:nrands
+    
+    rnd_mat=[];
     
     for i=1:length(beh_type_fields)
         for j=1:length(ca_type_fields)
@@ -218,8 +238,15 @@ for ii=1:nrands
         
         %         ca_type.gcamp=markolab_vec2mat(zscore(phase_rnds{i}.gcamp(:,ii)),win_size,0);
         %         ca_type.autofluo=markolab_vec2mat(zscore(phase_rnds{i}.autofluo(:,ii)),win_size,0);
-        ca_type.ref=markolab_vec2mat(zscore(phase_rnds{i}.ref(:,ii)),win_size,0);
         
+        if isfield(use_photometry{i}.kin,'ref')
+            ca_type.ref=markolab_vec2mat(zscore(phase_rnds{i}.ref(:,ii)),win_size,0);
+        else
+            ca_type.proc1=markolab_vec2mat(zscore(phase_rnds{i}.proc1(:,ii)),win_size,0);
+            ca_type.proc2=markolab_vec2mat(zscore(phase_rnds{i}.proc2(:,ii)),win_size,0);
+        end
+%         ca_type.ref=markolab_vec2mat(zscore(phase_rnds{i}.ref(:,ii)),win_size,0);
+
         beh_type.delta=markolab_vec2mat(zscore(delta_score{i}),win_size,0);
         beh_type.delta_bin=markolab_vec2mat(zscore(delta_score_bin{i}),win_size,0);
         beh_type.delta_bin_onsets=markolab_vec2mat(zscore(delta_score_bin_onsets{i}),win_size,0);
