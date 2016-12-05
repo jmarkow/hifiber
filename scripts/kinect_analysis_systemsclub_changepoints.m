@@ -5,14 +5,13 @@
 
 
 win_size=900;
-delta_win=10;
-smooth_sig=.25;
+delta_win=3;
+smooth_sig=1;
 delta_thresh=.1;
 max_lag=90;
 bin_smooth=2;
 nrands=1e3;
 beh_type_fields={'delta','delta_bin','delta_model','delta_bin_onsets','delta_bin_offsets','delta_bin_midpoints'};
-ca_type_fields={'ref','proc1','proc2'};
 dir_list={};
 
 %%
@@ -27,12 +26,14 @@ load('experiment_data_scores.mat','frame_idx');
 load('experiment_data_neural.mat','photometry');
 load('experiment_data_rps.mat','rps');
 load('use_session.mat','use_session');
+
+%%
+
 use_photometry=photometry(use_session);
 use_rps=rps(use_session);
-use_labels=state_labels(use_session);
 use_frame_idx=frame_idx(use_session);
 
-if isfield(use_photometry{i}.kin,'ref')
+if isfield(use_photometry{1}.kin,'ref')
     ca_type_fields={'ref'};
 else
     ca_type_fields={'proc1','proc2'};
