@@ -32,6 +32,7 @@ use_insc_ts=use_metadata.inscopix_frame_idx;
 
 % changepoints first...
 
+camera_fs=30;
 
 win_size=900;
 delta_win=3;
@@ -126,7 +127,7 @@ end
 
 % trigger the population on changepoints
 
-[~,changepoints]=findpeaks(insc_delta,'minpeakheight',50);
+[~,changepoints]=findpeaks(insc_delta,'minpeakheight',125);
 
 win_population=zeros(2*max_lag+1,numel(changepoints),ncells);
 npoints=numel(insc_delta);
@@ -144,10 +145,126 @@ end
 
 
 % zscore,pca, kmeans (20 looks good!)
+%%
+changemat=squeeze(mean(win_population(80:110,:,:)));
+[coeff score]=pca(zscore(changemat));
+
+% do this the old-fashioned way
+
+clust_choice=[5:30];
+bic=[];
+upd=kinect_proctimer(length(clust_choice));
+options=statset('MaxIter',1e3);
+
+for i=1:length(clust_choice);
+    guess=kmeans(zscore(score(:,1:10)),clust_choice(i),'replicates',5);
+    model_obj{i}=fitgmdist(zscore(score(:,1:10)),clust_choice(i),'start',guess,'regularization',1e-5,'options',options);
+    bic(i)=model_obj{i}.BIC;
+    upd(i);
+end
+
+save('activity_cluster.mat','model_obj','bic','clust_choice');
+
+%%
+
+[~,loc]=min(bic);
+use_model=model_obj{loc};
+cidx=cluster(use_model,zscore(score(:,1:10)));
+[~,cplotidx]=sort(cidx,'descend');
+
+%%
+
+figs.all_changepoint_activity=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
+whitebg(figs.all_changepoint_activity);
+imagesc(zscore(changemat)');
+axis off
+caxis([0 10]);
+colormap(hot);
+set(figs.all_changepoint_activity,'color',[0 0 0],'InvertHardcopy','off');
+ylimits=ylim()
+markolab_multi_fig_save(figs.all_changepoint_activity,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity','eps,png,fig','renderer','painters');
+
+figs.all_changepoint_activity_cov=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
+whitebg(figs.all_changepoint_activity);
+imagesc(cov(zscore(changemat)'));
+axis off
+caxis([0 .5]);
+colormap(hot);
+set(figs.all_changepoint_activity_cov,'color',[0 0 0],'InvertHardcopy','off');
+ylimits=ylim()
+markolab_multi_fig_save(figs.all_changepoint_activity_cov,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity_cov','eps,png,fig','renderer','painters');
+
+%%
+
+figs.all_changepoint_activity_sorted=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
+whitebg(figs.all_changepoint_activity);
+imagesc(imgaussfilt(zscore(changemat(cplotidx,:))',[.5 5]));
+axis off
+caxis([0 5]);
+colormap(hot);
+set(figs.all_changepoint_activity,'color',[0 0 0],'InvertHardcopy','off');
+ylimits=ylim()
+markolab_multi_fig_save(figs.all_changepoint_activity_sorted,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity_sorted','eps,png,fig','renderer','painters');
+
+figs.all_changepoint_activity_sorted_cov=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
+whitebg(figs.all_changepoint_activity);
+imagesc(cov(zscore(changemat(cplotidx,:))'));
+axis off
+caxis([0 .5]);
+colormap(hot);
+set(figs.all_changepoint_activity_cov,'color',[0 0 0],'InvertHardcopy','off');
+ylimits=ylim()
+markolab_multi_fig_save(figs.all_changepoint_activity_sorted_cov,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity_sorted_cov','eps,png,fig','renderer','painters');
 
 
+%%
+% first show all activity
+
+figs.all_activity=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
+imagesc(zscore(neuron_results.C')');
+caxis([0 10]);
+hold on;
+ylimits=ylim();
+plot([changepoints;changepoints],[ones(size(changepoints))*ylimits(1);ones(size(changepoints))*ylimits(2)],'w-');
+set(figs.all_activity,'InvertHardcopy','off');
+markolab_multi_fig_save(figs.all_activity,'~/Desktop/quickfigs','systemsclub_inscopix_allpluschangepoints','eps,png,fig','renderer','painters');
+    
+
+%%
+figs.changepoints_corr=figure('PaperPositionMode','Auto','Position',[100 100 300 250]);
+whitebg(figs.changepoints_corr)
+thresh=std(neuron_results.C,[],2);
+bin_activity=neuron_results.C>repmat(thresh,[1 size(neuron_results.C,2)]);
+[r,lags]=xcorr(zscore(sum(bin_activity)),zscore(insc_delta),max_lag,'coeff');
+
+%[r,lags]=
+g=gramm('x',lags/camera_fs,'y',r);
+g.geom_line();
+g.axe_property('ylim',[-.08 .08],'ytick',[-.08 0 .08],'xtick',[-3 0 3],'xlim',[-3 3],'TickDIr','out','TickLength',[.015 .015]);
+
+g.draw();
+set(figs.changepoints_corr,'color',[0 0 0],'InvertHardCopy','off');
+offsetAxes(g.facet_axes_handles);
+markolab_multi_fig_save(figs.changepoints_corr,'~/Desktop/quickfigs','systemsclub_inscopix_changepointscorr','eps,png,fig','renderer','painters');
 
 
+%%
+% write out two movies, make sure they are sync'ed up
+
+tf_listing=dir('recording*.tif');
+
+% last is first unfortunately
+nframes=1e3;
+% v=VideoWriter('rawdata.mp4','MPEG-4')
+% v.FrameRate=30;
+% v.Quality=100;
+
+frames=zeros(1080,1440,1e3,'int16');
+upd=kinect_proctimer(nframes);
+for i=1:nframes
+    frames(:,:,i)=imread(tf_listing(end).name,i);
+    upd(i);
+end
 
 
 
