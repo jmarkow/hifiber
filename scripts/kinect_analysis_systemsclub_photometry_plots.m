@@ -304,7 +304,7 @@ caxis([0 1.2]);
  linkaxes(ax,'x');
 xlim([-2 2]);
 set(figs.pc_pseudocolor,'color',[0 0 0],'InvertHardcopy','off');
-markolab_multi_fig_save(figs.pc_pseudocolor,'~/Desktop/quickfigs',['systemsclub_pcpseudocolor'] ,'eps,png,fig','renderer','painters');
+%markolab_multi_fig_save(figs.pc_pseudocolor,'~/Desktop/quickfigs',['systemsclub_pcpseudocolor'] ,'eps,png,fig','renderer','painters');
 
 
 %%

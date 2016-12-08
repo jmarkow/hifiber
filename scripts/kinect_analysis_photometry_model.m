@@ -122,50 +122,82 @@ for ii=1:nrands
     
 end
 
+save('syllable_id_corr_phasernd.mat','ave_rnds','ave_win')
+
 %%
 clims=[-10 10];
 
-figs.syllable_corr=figure('PaperPositionMode','auto','position',[100 100 1000 300]);
-whitebg(figs.syllable_corr);
-ax(1)=subplot(1,3,1);
+p_val_right=mean(repmat(ave_win,[1 1 nrands])<ave_rnds,3);
+p_val_left=mean(repmat(ave_win,[1 1 nrands])>ave_rnds,3);
+
+high_hits=find(sum(p_val_right(win_size-10:win_size+10,:)<.001)>0);
+low_hits=find(sum(p_val_left(win_size-10:win_size+10,:)<.001)>0);
+low_hits=setdiff(low_hits,high_hits)
 mu_rnds=mean(ave_rnds,3);
 std_rnds=std(ave_rnds,[],3);
+
+% 
+% scales=[-10 10];
+
 ave_win_z=(ave_win-mu_rnds)./std_rnds;
+
+% sort the high and low hits by something interesting...
+[~,tmp]=max(ave_win_z(win_size-20:win_size+20,high_hits));
+[~,high_idx]=sort(tmp,'ascend');
+[~,tmp]=min(ave_win_z(win_size-20:win_size+20,low_hits));
+[~,low_idx]=sort(tmp,'descend');
+ave_win_z=ave_win_z(:,[high_hits(high_idx)';low_hits(low_idx)']);
 [val]=mean(ave_win_z(win_size:win_size+20,:));
-[~,left_idx]=sort(val,'descend');
+%[~,left_idx]=sort(val,'descend');
+% 
+% scales_win_z=ave_win_z(:,left_idx);
+% scales_win_z=(scales_win_z-(scales(1)))./(scales(2)-scales(1));
+% scales_win_z(scales_win_z<0)=0;
+% scales_win_z(scales_win_z>1)=1;
+% scales_win_z=uint8(scales_win_z*256);
+% scales_win_rgb=ind2rgb(scales_win_z,jet(256));
+% 
+% [r,c]=find(min(p_val_right,p_val_left)>.01);
+% 
+% for i=1:length(r)
+%    %ms_image_rgb(r(i),c(i),:)=.01*ms_image_rgb(r(i),c(i),:); 
+%    scales_win_rgb(r(i),c(i),:)=[.8 .8 .8];
+% end
+% 
+% figure();image(scales_win_rgb);
+% pause();
+
+
+figs.syllable_corr=figure('PaperPositionMode','auto','position',[100 100 400 400]);
+whitebg(figs.syllable_corr);
+% ax(1)=subplot(1,3,1);
+
 tvec=[-win_size:win_size]/camera_fs;
-imagesc(tvec,[],ave_win_z(:,left_idx)');
-colormap(jet);
+ave_win_z(abs(ave_win_z)<1)=0;
+imagesc(tvec,[],ave_win_z');
+colormap(hot);
 set(gca,'YTick',[],'XTick',[-4:1:4],'XLim',[-3 3],'TickDir','out','TickLength',[.015 .015]);
 box off;
 set(figs.syllable_corr,'color',[0 0 0]);
 caxis([-10 10]);
 
-p_val_right=mean(repmat(ave_win,[1 1 nrands])<ave_rnds,3);
-p_val_left=mean(repmat(ave_win,[1 1 nrands])>ave_rnds,3);
-
-high_hits=find(sum(p_val_right(win_size-20:win_size+20,:)<.005)>0);
-low_hits=find(sum(p_val_left(win_size-20:win_size+20,:)<.005)>0);
-
-
-ax(2)=subplot(1,3,2);
-[val,idx]=max(ave_win_z(100:140,high_hits));
-[~,idx2]=sort(idx,'ascend');
-imagesc(tvec,[],ave_win_z(:,high_hits(idx2))');box off;
-set(gca,'YTick',[],'XTick',[-4:1:4],'XLim',[-3 3],'TickDir','out','TickLength',[.015 .015]);
-
-caxis([-10 10]);
-
-
-ax(3)=subplot(1,3,3);
-[val,idx]=min(ave_win_z(100:140,low_hits));
-[~,idx2]=sort(idx,'ascend');
-imagesc(tvec,[],ave_win_z(:,low_hits(idx2))');box off;
-set(gca,'YTick',[],'XTick',[-4:1:4],'XLim',[-3 3],'TickDir','out','TickLength',[.015 .015]);
-
-caxis([-10 10]);
+% ax(2)=subplot(1,3,2);
+% [val,idx]=max(ave_win_z(100:140,high_hits));
+% [~,idx2]=sort(idx,'ascend');
+% imagesc(tvec,[],ave_win_z(:,high_hits(idx2))');box off;
+% set(gca,'YTick',[],'XTick',[-4:1:4],'XLim',[-3 3],'TickDir','out','TickLength',[.015 .015]);
+% 
+% caxis([-10 10]);
+% 
+% 
+% ax(3)=subplot(1,3,3);
+% [val,idx]=min(ave_win_z(100:140,low_hits));
+% [~,idx2]=sort(idx,'ascend');
+% imagesc(tvec,[],ave_win_z(:,low_hits(idx2))');box off;
+% set(gca,'YTick',[],'XTick',[-4:1:4],'XLim',[-3 3],'TickDir','out','TickLength',[.015 .015]);
+% caxis([-10 10]);
 set(figs.syllable_corr,'InvertHardcopy','off');
-markolab_multi_fig_save(figs.syllable_corr,'~/Desktop/quickfigs',[ 'systems_club_syllable_corr'] ,'eps,png,fig','renderer','painters');
+markolab_multi_fig_save(figs.syllable_corr,'~/Desktop/quickfigs',[ 'systems_club_syllable_corr_significant_only_hot'] ,'eps,png,fig','renderer','painters');
 
 
 %%

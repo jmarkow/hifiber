@@ -10,6 +10,7 @@ load('experiment_data_scores.mat','frame_idx','smooth_scores');
 load('experiment_data_pca.mat','features');
 load('experiment_data_rps.mat','rps');
 load('experiment_data_metadata.mat','metadata');
+load('neuron_results.mat','neuron_results');
 use_session=2;
 
 %%
@@ -19,6 +20,7 @@ use_rps=zscore(zscore(rps{use_session})');
 use_frame_idx=frame_idx{use_session};
 use_labels=state_labels{use_session}(~isnan(use_frame_idx));
 use_scores=smooth_scores{use_session}(:,~isnan(use_frame_idx));
+
 load(use_metadata.frames_file,'depth_bounded_rotated');
 
 %%
@@ -29,7 +31,8 @@ use_insc_ts=use_metadata.inscopix_frame_idx;
 
 %%
 
-
+npcs=size(use_scores,1);
+ncells=size(neuron_results.C,1);
 % changepoints first...
 
 camera_fs=30;
@@ -79,11 +82,18 @@ for i =1:length(insc_ts)
     
     % simply average for now
     
+    dist=abs(use_insc_ts-insc_ts(i));
     hits=find(use_insc_ts==insc_ts(i));
+    
     if ~isempty(hits)
        insc_scores(:,i)=mean(use_scores(:,hits),2);
        insc_delta(i)=mean(delta_score(hits));
        insc_frames(:,:,i)=mean(depth_bounded_rotated(:,:,hits),3);
+    else
+       [val,loc]=min(dist);
+       if val<3
+        insc_frames(:,:,i)=depth_bounded_rotated(:,:,loc);
+       end
     end
     upd(i);
     
@@ -102,8 +112,7 @@ insc_delta(nanidx)=interp1(insc_ts(~nanidx),insc_delta(~nanidx),insc_ts(nanidx))
 
 % pcs x cells x lags
 max_lag=90;
-npcs=size(insc_scores,1);
-ncells=size(neuron_results.C,1);
+
 lag_mat_pc=zeros(2*max_lag+1,npcs,ncells);
 upd=kinect_proctimer(npcs*ncells);
 counter=1;
@@ -127,43 +136,48 @@ end
 
 % trigger the population on changepoints
 
-[~,changepoints]=findpeaks(insc_delta,'minpeakheight',125);
+[~,changepoints]=findpeaks(insc_delta,'minpeakheight',50);
 
 win_population=zeros(2*max_lag+1,numel(changepoints),ncells);
 npoints=numel(insc_delta);
 counter=1;
+norm_activity=neuron_results.C./repmat(max(neuron_results.C,[],2),[1 size(neuron_results.C,2)]);
 
 for i=1:length(changepoints)
    left_edge=changepoints(i)-max_lag;
    right_edge=changepoints(i)+max_lag;
    
    if left_edge>0 & right_edge<=npoints
-        win_population(:,counter,:)=neuron_results.C(:,left_edge:right_edge)';
+        win_population(:,counter,:)=norm_activity(:,left_edge:right_edge)';
         counter=counter+1;
    end
 end
 
+changemat=squeeze(mean(win_population(80:120,:,:)));
+[coeff score]=pca(zscore(changemat));
 
 % zscore,pca, kmeans (20 looks good!)
 %%
-changemat=squeeze(mean(win_population(80:110,:,:)));
-[coeff score]=pca(zscore(changemat));
 
-% do this the old-fashioned way
-
-clust_choice=[5:30];
-bic=[];
-upd=kinect_proctimer(length(clust_choice));
-options=statset('MaxIter',1e3);
-
-for i=1:length(clust_choice);
-    guess=kmeans(zscore(score(:,1:10)),clust_choice(i),'replicates',5);
-    model_obj{i}=fitgmdist(zscore(score(:,1:10)),clust_choice(i),'start',guess,'regularization',1e-5,'options',options);
-    bic(i)=model_obj{i}.BIC;
-    upd(i);
+if exist('activity_cluster.mat','file')~=2
+    % do this the old-fashioned way
+    
+    clust_choice=[5:30];
+    bic=[];
+    upd=kinect_proctimer(length(clust_choice));
+    options=statset('MaxIter',1e3);
+    
+    for i=1:length(clust_choice);
+        guess=kmeans(zscore(score(:,1:10)),clust_choice(i),'replicates',5);
+        model_obj{i}=fitgmdist(zscore(score(:,1:10)),clust_choice(i),'start',guess,'regularization',1e-5,'options',options);
+        bic(i)=model_obj{i}.BIC;
+        upd(i);
+    end
+    
+    save('activity_cluster.mat','model_obj','bic','clust_choice');
+else
+    load('activity_cluster.mat','model_obj','bic','clust_choice');
 end
-
-save('activity_cluster.mat','model_obj','bic','clust_choice');
 
 %%
 
@@ -178,17 +192,19 @@ figs.all_changepoint_activity=figure('PaperPositionMode','Auto','Position',[100 
 whitebg(figs.all_changepoint_activity);
 imagesc(zscore(changemat)');
 axis off
-caxis([0 10]);
+caxis([0 3]);
 colormap(hot);
 set(figs.all_changepoint_activity,'color',[0 0 0],'InvertHardcopy','off');
 ylimits=ylim()
 markolab_multi_fig_save(figs.all_changepoint_activity,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity','eps,png,fig','renderer','painters');
 
 figs.all_changepoint_activity_cov=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
-whitebg(figs.all_changepoint_activity);
-imagesc(cov(zscore(changemat)'));
+whitebg(figs.all_changepoint_activity_cov);
+covmat=cov(zscore(changemat)');
+covmat(eye(size(covmat))==1)=0;
+imagesc(covmat);
 axis off
-caxis([0 .5]);
+caxis([0 .15]);
 colormap(hot);
 set(figs.all_changepoint_activity_cov,'color',[0 0 0],'InvertHardcopy','off');
 ylimits=ylim()
@@ -197,22 +213,24 @@ markolab_multi_fig_save(figs.all_changepoint_activity_cov,'~/Desktop/quickfigs',
 %%
 
 figs.all_changepoint_activity_sorted=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
-whitebg(figs.all_changepoint_activity);
+whitebg(figs.all_changepoint_activity_sorted);
 imagesc(imgaussfilt(zscore(changemat(cplotidx,:))',[.5 5]));
 axis off
-caxis([0 5]);
+caxis([0 1]);
 colormap(hot);
-set(figs.all_changepoint_activity,'color',[0 0 0],'InvertHardcopy','off');
+set(figs.all_changepoint_activity_sorted,'color',[0 0 0],'InvertHardcopy','off');
 ylimits=ylim()
 markolab_multi_fig_save(figs.all_changepoint_activity_sorted,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity_sorted','eps,png,fig','renderer','painters');
 
 figs.all_changepoint_activity_sorted_cov=figure('PaperPositionMode','Auto','Position',[100 100 700 500]);
-whitebg(figs.all_changepoint_activity);
-imagesc(cov(zscore(changemat(cplotidx,:))'));
+whitebg(figs.all_changepoint_activity_sorted_cov);
+covmat=cov(zscore(changemat(cplotidx,:))');
+covmat(eye(size(covmat))==1)=0;
+imagesc(covmat);
 axis off
-caxis([0 .5]);
+caxis([0 .15]);
 colormap(hot);
-set(figs.all_changepoint_activity_cov,'color',[0 0 0],'InvertHardcopy','off');
+set(figs.all_changepoint_activity_sorted_cov,'color',[0 0 0],'InvertHardcopy','off');
 ylimits=ylim()
 markolab_multi_fig_save(figs.all_changepoint_activity_sorted_cov,'~/Desktop/quickfigs','systemsclub_inscopix_allchangepointactivity_sorted_cov','eps,png,fig','renderer','painters');
 
@@ -227,7 +245,7 @@ hold on;
 ylimits=ylim();
 plot([changepoints;changepoints],[ones(size(changepoints))*ylimits(1);ones(size(changepoints))*ylimits(2)],'w-');
 set(figs.all_activity,'InvertHardcopy','off');
-markolab_multi_fig_save(figs.all_activity,'~/Desktop/quickfigs','systemsclub_inscopix_allpluschangepoints','eps,png,fig','renderer','painters');
+%markolab_multi_fig_save(figs.all_activity,'~/Desktop/quickfigs','systemsclub_inscopix_allpluschangepoints','eps,png,fig','renderer','painters');
     
 
 %%
@@ -235,7 +253,7 @@ figs.changepoints_corr=figure('PaperPositionMode','Auto','Position',[100 100 300
 whitebg(figs.changepoints_corr)
 thresh=std(neuron_results.C,[],2);
 bin_activity=neuron_results.C>repmat(thresh,[1 size(neuron_results.C,2)]);
-[r,lags]=xcorr(zscore(sum(bin_activity)),zscore(insc_delta),max_lag,'coeff');
+[r,lags]=xcorr(detrend(zscore(sum(bin_activity))),zscore(insc_delta),max_lag,'coeff');
 
 %[r,lags]=
 g=gramm('x',lags/camera_fs,'y',r);
@@ -245,7 +263,7 @@ g.axe_property('ylim',[-.08 .08],'ytick',[-.08 0 .08],'xtick',[-3 0 3],'xlim',[-
 g.draw();
 set(figs.changepoints_corr,'color',[0 0 0],'InvertHardCopy','off');
 offsetAxes(g.facet_axes_handles);
-markolab_multi_fig_save(figs.changepoints_corr,'~/Desktop/quickfigs','systemsclub_inscopix_changepointscorr','eps,png,fig','renderer','painters');
+%markolab_multi_fig_save(figs.changepoints_corr,'~/Desktop/quickfigs','systemsclub_inscopix_changepointscorr','eps,png,fig','renderer','painters');
 
 
 %%
@@ -266,6 +284,51 @@ for i=1:nframes
     upd(i);
 end
 
+%%
+
+% smooth spatial correlation plot
+
+bin_width=25;
+
+d1=1-pdist(zscore(changemat)','correlation');
+d3=1-pdist(zscore(neuron_results.C),'correlation');
+d2=pdist(neuron_results.A_centers,'euclidean');
+
+bin_centers=0:5:150;
+y_plot=cell(1,length(bin_centers));
+y_plot2=cell(1,length(bin_centers));
+
+for k=1:length(bin_centers)
+    idx=find(d2>=(bin_centers(k)-bin_width)&d2<=(bin_centers(k)+bin_width));
+    y_plot{k}=d1(idx);
+    %idx2=find(d3>=(bin_centers(k)-bin_width)&d3<=(bin_centers(k)+bin_width));
+    y_plot2{k}=d3(idx);
+end
+
+
+%%
+
+idx1=cellfun(@length,y_plot)>5;
+idx2=cellfun(@length,y_plot2)>5;
+mu1=cellfun(@mean,y_plot(idx1));
+mu2=cellfun(@mean,y_plot2(idx2));
+scale1=max(mu1);
+scale2=max(mu2);
+ci1=cellfun(@(x) bootci(1e3,{@mean,x},'type','per','alpha',.01)./scale1,y_plot(idx1),'UniformOutput',false);
+ci2=cellfun(@(x) bootci(1e3,{@mean,x},'type','per','alpha',.01)./scale2,y_plot2(idx2),'UniformOutput',false);
+ci1=cat(2,ci1{:});
+ci2=cat(2,ci2{:});
+
+save('spatialscale_comparison.mat','idx1','idx2','mu1','mu2','ci1','ci2');
+
+%%
+
+figs.scale_comparison=figure('PaperPositionMode','auto','position',[100 100 500 500]);
+markolab_shadeplot(bin_centers(idx1)*.65,ci1);
+hold on;
+plot(bin_centers(idx1)*.65,mu1/scale1,'r-');
+markolab_shadeplot(bin_centers(idx2)*.65,ci2);
+plot(bin_centers(idx2)*.65,mu2/scale2);
 
 
 
