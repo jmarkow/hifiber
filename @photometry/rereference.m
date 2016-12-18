@@ -16,7 +16,6 @@ for i=to_reref
 		% make sure that the baseline has been subtracted first (slow drift should
 		% not factor into this calculation)
 
-
 	case 'l'
 
 		% least squares (should give same answer, leaving here for completeness)
