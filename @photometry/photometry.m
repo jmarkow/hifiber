@@ -40,6 +40,8 @@ classdef photometry < handle & matlab.mixin.SetGet
 			% construct the object, then need methods for filtering, re-referencing
 			% and matching other timestamps (e.g. from camera)
 
+			% TODO:  status, steps, and automating everything similar to kinect extract
+
 			if isvector(DATA)
 				DATA=DATA(:);
 			end
