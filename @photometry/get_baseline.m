@@ -13,8 +13,11 @@ for i=1:length(OBJ.traces)
 	use_data=OBJ.traces(i).raw;
 	padded_data=[use_data(floor(nwin/2):-1:1);use_data;use_data(end-floor(nwin/2-1):1:end)];
 	proc_mat=vec2mat(padded_data,nwin,nwin-1);
+
+	% apply the rolling statistic
+
 	baseline=OBJ.options.photometry.baseline_fcn(proc_mat)';
 	OBJ.traces(i).baseline=baseline(:);
 	upd(i);
-	
+
 end

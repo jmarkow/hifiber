@@ -16,6 +16,13 @@ for i=to_reref
 		% make sure that the baseline has been subtracted first (slow drift should
 		% not factor into this calculation)
 
+		sig=OBJ.traces(i).baseline_rem;
+		reference=OBJ.traces(OBJ.metadata.channels(i).reference_channel).baseline_rem;
+
+		num=sig'*reference;
+		den=reference'*reference;
+		OBJ.traces(i).reref=sig-reference*(num/den);
+
 	case 'l'
 
 		% least squares (should give same answer, leaving here for completeness)
