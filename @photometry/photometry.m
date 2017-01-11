@@ -33,8 +33,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 		function obj=photometry(DATA,TIMESTAMPS)
 
 			if nargin<2
-				error(['Photometry objects require data passed '...
-					'as a sample x channel matrix and sample x 1 timestamps vector']);
+				return;
 			end
 
 			% construct the object, then need methods for filtering, re-referencing

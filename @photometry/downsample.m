@@ -4,24 +4,29 @@ function downsample(OBJ)
 
 % anti-alias filtering
 
-if mod(OBJ.metadata.fs,OBJ.options.photometry.new_fs)~=0
-	error('Downsampling is only supported for integer downsampling factors');
-end
 
 fprintf('Downsampling data...\n');
 
-[b,a]=ellip(4,.2,40,[.75*(OBJ.options.photometry.new_fs/2)]/(OBJ.metadata.fs/2),'low');
-downsample_factor=OBJ.metadata.fs/OBJ.options.photometry.new_fs;
-upd=photometry.proc_timer(length(OBJ.traces));
+for i=1:length(OBJ)
 
-for i=1:length(OBJ.traces)
-	data_types=fieldnames(OBJ.traces(i));
-	for j=1:length(data_types)
-		OBJ.traces(i).(data_types{j})=filtfilt(b,a,OBJ.traces(i).(data_types{j}));
-		OBJ.traces(i).(data_types{j})=downsample(OBJ.traces(i).(data_types{j}),downsample_factor);
+	if mod(OBJ(i).metadata.fs,OBJ(i).options.photometry.new_fs)~=0
+		error('Downsampling is only supported for integer downsampling factors');
 	end
-	upd(i);
-end
 
-OBJ.timestamps=downsample(OBJ.timestamps,downsample_factor);
-OBJ.metadata.fs=OBJ.options.photometry.new_fs;
+	[b,a]=ellip(4,.2,40,[.75*(OBJ(i).options.photometry.new_fs/2)]/(OBJ(i).metadata.fs/2),'low');
+	downsample_factor=OBJ(i).metadata.fs/OBJ(i).options.photometry.new_fs;
+	upd=photometry.proc_timer(length(OBJ(i).traces));
+
+	for j=1:length(OBJ(i).traces)
+		data_types=fieldnames(OBJ(i).traces(j));
+		for k=1:length(data_types)
+			OBJ(i).traces(j).(data_types{k})=filtfilt(b,a,OBJ(i).traces(j).(data_types{k}));
+			OBJ(i).traces(j).(data_types{k})=downsample(OBJ(i).traces(j).(data_types{k}),downsample_factor);
+		end
+		upd(j);
+	end
+
+	OBJ(i).timestamps=downsample(OBJ(i).timestamps,downsample_factor);
+	OBJ(i).metadata.fs=OBJ.options.photometry.new_fs;
+
+end
