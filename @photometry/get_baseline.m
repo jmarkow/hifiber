@@ -6,7 +6,9 @@ function get_baseline(OBJ)
 
 for i=1:length(OBJ)
 
-	upd=photometry.proc_timer(length(OBJ(i).traces));
+	if length(OBJ(i).traces)>0
+		upd=photometry.proc_timer(length(OBJ(i).traces));
+	end
 
 	for j=1:length(OBJ(i).traces)
 
