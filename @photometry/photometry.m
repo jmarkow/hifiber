@@ -16,6 +16,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 		timestamps
 		traces
 		metadata
+		status
 
 	end
 
@@ -60,6 +61,8 @@ classdef photometry < handle & matlab.mixin.SetGet
 				obj.metadata.channels(i).type='data';
 				obj.metadata.channels(i).reference_channel=[];
 			end
+
+			obj.status.invert=false;
 
 		end
 
