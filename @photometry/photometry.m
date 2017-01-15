@@ -63,12 +63,31 @@ classdef photometry < handle & matlab.mixin.SetGet
 
 		end
 
+		% function saveobj(obj)
+		% 	s.options=obj.options;
+		% 	s.traces=obj.traces;
+		% 	s.metadata=obj.metadata;
+		% 	s.timestamps=obj.timestamps;
+		% end
+
 	end
 
 	methods(Static)
 
 		% doesn't require the kinect_extract object
 		upd=proc_timer(nloops,varargin)
+
+		% function obj=loadobj(s)
+		% 	if isstruct(s)
+		% 		newobj=photometry;
+		% 		newobj.options=s.options;
+		% 		newobj.traces=s.traces;
+		% 		newobj.metadata=s.metadata;
+		% 		newobj.timestamps=s.timestamps;
+		% 		obj=newobj;
+		% 	end
+		%
+		% end
 
 	end
 
