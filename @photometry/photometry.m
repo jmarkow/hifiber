@@ -31,7 +31,11 @@ classdef photometry < handle & matlab.mixin.SetGet
 
 	methods
 
-		function obj=photometry(DATA,TIMESTAMPS)
+		function obj=photometry(DATA,TIMESTAMPS,CHANNEL_NAMES)
+
+			if nargin<3
+				CHANNELS_NAMES={};
+			end
 
 			if nargin<2
 				return;
@@ -60,8 +64,10 @@ classdef photometry < handle & matlab.mixin.SetGet
 				obj.traces(i).raw=DATA(:,i);
 				obj.metadata.channels(i).type='data';
 				obj.metadata.channels(i).reference_channel=[];
+				obj.metadata.channels(i).name=sprintf('Ch%i',i);
 			end
 
+			obj.set_channel_names=CHANNEL_NAMES;
 			obj.status.invert=false;
 
 		end
