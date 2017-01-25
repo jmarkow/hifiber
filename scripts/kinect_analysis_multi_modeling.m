@@ -5,7 +5,7 @@
 
 % then for all syllables, get significance, sort by z-score
 
-num=28;
+num=13;
 
 usage=extract_object.get_syllable_usage;
 [~,usage_idx]=sort(usage,'descend');
@@ -16,6 +16,9 @@ corr_mat2=zeros(max_lag*2+1,nsyllables);
 kernel=normpdf(-10:10,0,1.5);
 timer_upd=kinect_extract.proc_timer(nsyllables);
 obj=extract_object(num);
+%obj.neural_data.photometry.invert;
+obj.neural_data.photometry.get_baseline;
+obj.neural_data.photometry.subtract_baseline;
 
 for i=1:nsyllables
 
