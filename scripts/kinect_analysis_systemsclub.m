@@ -1,7 +1,7 @@
 %
 % assumes masked data and bounded data are loaded in;
 
-% generate a simple movie that rotates to demonstrate 
+% generate a simple movie that rotates to demonstrate
 % nature of data
 
 
@@ -76,7 +76,7 @@ timer_upd=kinect_proctimer(length(frames));
 for i=frames
     set(h,'XData',xx,'YData',yy,'ZData',depth_masked(:,:,i));
     set(h2,'CData',depth_bounded_rotated(:,:,i));
-    if (i-(frames(1)-1))<=rps_width    
+    if (i-(frames(1)-1))<=rps_width
         set(h4,'xdata',[i-(frames(1)-1) rps_width+1 rps_width+1 i-(frames(1)-1)]');
         set(h6,'xdata',[i-(frames(1)-1) rps_width+1 rps_width+1 i-(frames(1)-1)]');
     else
@@ -93,9 +93,3 @@ for i=frames
 end
 
 close(v);
-
-
-
-
-
- 
