@@ -54,7 +54,7 @@ corr_mat_rcampz=(corr_mat_rcamp-corr_mat_rcamp_mu)./corr_mat_rcamp_std;
 
 % p-val (right tail)
 
-use_idx=40:140;
+use_idx=20:160;
 tmp=squeeze(max(corr_mat_gcamp_rnd(use_idx,:,:)));
 tmp2=repmat(max(corr_mat_gcamp(use_idx,:))',[1 1e3]);
 
@@ -82,16 +82,68 @@ pval_left_rcamp=mean(tmp<tmp2,2);
 % plotting, make matrix like we did for gcamp, left to right pos then right
 % to left neg
 
-pos_hits=find(pval_right_rcamp<.05&~isnan(min(corr_mat_rcamp))');
-neg_hits=find(pval_left_rcamp<.05&~isnan(min(corr_mat_rcamp))');
+pos_hits_rcamp=find(pval_right_rcamp<.05&~isnan(min(corr_mat_rcamp))');
+neg_hits_rcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_rcamp))');
 
-[val,idx]=max(corr_mat_rcampz(use_idx,pos_hits));
-[~,pos_idx2]=sort(idx,'ascend');
+pos_hits_gcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_gcamp))');
+neg_hits_gcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_gcamp))');
 
-[val,idx]=min(corr_mat_rcampz(use_idx,neg_hits));
-[~,neg_idx2]=sort(idx,'descend');
+pos_hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
+neg_hits_all=unique([neg_hits_rcamp;neg_hits_gcamp]);
+
+[val,idx]=max(corr_mat_rcampz(use_idx,pos_hits_all));
+[~,pos_rcamp_idx2]=sort(idx,'ascend');
+
+[val,idx]=min(corr_mat_rcampz(use_idx,neg_hits_all));
+[~,neg_rcamp_idx2]=sort(idx,'descend');
+
+[val,idx]=max(corr_mat_gcampz(use_idx,pos_hits_all));
+[~,pos_gcamp_idx2]=sort(idx,'ascend');
+
+[val,idx]=min(corr_mat_gcampz(use_idx,neg_hits_all));
+[~,neg_gcamp_idx2]=sort(idx,'descend');
+
+% apply sorting to each matrix
+
+% smoothing
+
+kernel=normpdf(-20:20,0,6);
+use_mat_rcampz=corr_mat_rcampz(:,pos_hits_all);
+use_mat_gcampz=corr_mat_gcampz(:,pos_hits_all);
+
+for i=1:length(pos_hits_all)
+    use_mat_gcampz(:,i)=conv(use_mat_gcampz(:,i),kernel,'same');
+    use_mat_rcampz(:,i)=conv(use_mat_rcampz(:,i),kernel,'same');
+end
 
 
+% and the plotting...lay out syllablen idx to match up movies
+max_lag=90;
+xvec=[-90:90]/30;
+clims=[-2 3];
+
+figure();
+ax(1)=subplot(2,2,1);
+imagesc(xvec,[],zscore(use_mat_rcampz(:,pos_rcamp_idx2))');
+caxis([clims]);
+axis off;
+
+ax(2)=subplot(2,2,2);
+imagesc(xvec,[],zscore(use_mat_gcampz(:,pos_rcamp_idx2))');
+caxis([clims]);
+axis off;
+
+ax(3)=subplot(2,2,3);
+imagesc(xvec,[],zscore(use_mat_rcampz(:,pos_gcamp_idx2))');
+caxis([clims]);
+set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
+box off;
+
+ax(4)=subplot(2,2,4);
+imagesc(xvec,[],zscore(use_mat_gcampz(:,pos_gcamp_idx2))');
+caxis([clims]);
+set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
+box off;
 
 
 
