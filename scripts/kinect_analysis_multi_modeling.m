@@ -5,8 +5,8 @@
 
 % then for all syllables, get significance, sort by z-score
 
-num=8;
-nrands=phot(1).options.photometry.nrands;
+num=4;
+nrands=phot(num).options.photometry.nrands;
 usage=extract_object.get_syllable_usage;
 [~,usage_idx]=sort(usage,'descend');
 max_lag=90;
