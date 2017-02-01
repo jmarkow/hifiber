@@ -122,7 +122,7 @@ corr_mat_rcampz=(corr_mat_rcamp-corr_mat_rcamp_mu)./corr_mat_rcamp_std;
 
 % p-val (right tail)
 
-use_idx=30:151;
+use_idx=1:181;
 tmp=squeeze(max(corr_mat_gcamp_rnd(use_idx,:,:)));
 tmp2=repmat(max(corr_mat_gcamp(use_idx,:))',[1 1e3]);
 
@@ -153,8 +153,8 @@ pval_left_rcamp=mean(tmp<tmp2,2);
 pos_hits_rcamp=find(pval_right_rcamp<.05&~isnan(min(corr_mat_rcamp))');
 neg_hits_rcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_rcamp))');
 
-pos_hits_gcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_gcamp))');
-neg_hits_gcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_gcamp))');
+pos_hits_gcamp=find(pval_right_gcamp<.05&~isnan(min(corr_mat_gcamp))');
+neg_hits_gcamp=find(pval_left_gcamp<.05&~isnan(min(corr_mat_gcamp))');
 
 pos_hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
 neg_hits_all=unique([neg_hits_rcamp;neg_hits_gcamp]);
@@ -216,7 +216,7 @@ caxis([clims]);
 set(gca,'YTick',[],'XTick',[-3:1:3],'FontSize',14);
 box off;
 
-disp([pos_hits_all(pos_rcamp_idx2(:)) pos_hits_all(pos_gcamp_idx2(:))]);
+disp([[1:length(pos_hits_all)]' pos_hits_all(pos_rcamp_idx2(:)) pos_hits_all(pos_gcamp_idx2(:))]);
 whitebg(fig);
 set(fig,'Color',[0 0 0],'InvertHardCopy','off');
 

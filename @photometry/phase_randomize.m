@@ -6,11 +6,13 @@ function phase_randomize(OBJ,FIELD)
 nsamples=0;
 for i=1:length(OBJ)
 	if length(OBJ(i).traces)>0
-		nsamples=nsamples+length(OBJ(i).traces(1).raw);
+		for j=1:length(OBJ(i).traces)
+			nsamples=nsamples+length(OBJ(i).traces(1).raw);
+		end
 	end
 end
 
-upd=kinect_extract.proc_timer(nchannels);
+upd=kinect_extract.proc_timer(nsamples);
 counter=0;
 
 for i=1:length(OBJ)

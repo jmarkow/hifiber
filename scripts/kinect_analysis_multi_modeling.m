@@ -5,12 +5,13 @@
 
 % then for all syllables, get significance, sort by z-score
 
-num=4;
+num=7;
 nrands=phot(num).options.photometry.nrands;
 usage=extract_object.get_syllable_usage;
+usage=usage/sum(usage);
 [~,usage_idx]=sort(usage,'descend');
 max_lag=90;
-nsyllables=40;
+nsyllables=sum(usage>.001);
 corr_mat_gcamp=zeros(max_lag*2+1,nsyllables);
 corr_mat_rcamp=zeros(max_lag*2+1,nsyllables);
 
