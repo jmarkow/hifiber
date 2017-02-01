@@ -207,13 +207,13 @@ axis off;
 ax(3)=subplot(2,2,3);
 imagesc(xvec(use_idx),[],zscore(use_mat_rcampz(use_idx,pos_gcamp_idx2))');
 caxis([clims]);
-set(gca,'YTick',[],'XTick',[-3:1:3],'FontSize',14);
+set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
 box off;
 
 ax(4)=subplot(2,2,4);
 imagesc(xvec(use_idx),[],zscore(use_mat_gcampz(use_idx,pos_gcamp_idx2))');
 caxis([clims]);
-set(gca,'YTick',[],'XTick',[-3:1:3],'FontSize',14);
+set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
 box off;
 
 disp([[1:length(pos_hits_all)]' pos_hits_all(pos_rcamp_idx2(:)) pos_hits_all(pos_gcamp_idx2(:))]);
