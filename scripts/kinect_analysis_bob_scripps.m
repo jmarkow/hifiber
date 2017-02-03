@@ -129,7 +129,7 @@ syll_corr_rcampz=(syll_corr_rcamp-syll_corr_rcamp_mu)./syll_corr_rcamp_std;
 
 % p-val (right tail)
 
-use_idx=1:181;
+use_idx=30:151;
 tmp=squeeze(max(syll_corr_gcamp_rnd(use_idx,:,:)));
 tmp2=repmat(max(syll_corr_gcamp(use_idx,:))',[1 1e3]);
 
