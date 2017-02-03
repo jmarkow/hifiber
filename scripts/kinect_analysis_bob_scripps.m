@@ -110,38 +110,45 @@ end
 
 close(v)
 
-%% two color z-score analysis (take corr_mat)
+%% two color z-score analysis (take syll_corr)
 
-corr_mat_gcamp_mu=squeeze(mean(corr_mat_gcamp_rnd,3));
-corr_mat_gcamp_std=squeeze(std(corr_mat_gcamp_rnd,[],3));
-corr_mat_rcamp_mu=squeeze(mean(corr_mat_rcamp_rnd,3));
-corr_mat_rcamp_std=squeeze(std(corr_mat_rcamp_rnd,[],3));
+num=7;
 
-corr_mat_gcampz=(corr_mat_gcamp-corr_mat_gcamp_mu)./corr_mat_gcamp_std;
-corr_mat_rcampz=(corr_mat_rcamp-corr_mat_rcamp_mu)./corr_mat_rcamp_std;
+syll_corr_gcamp=extract_object(num).neural_data.analysis.syll_corr_gcamp;
+syll_corr_rcamp=extract_object(num).neural_data.analysis.syll_corr_rcamp;
+syll_corr_gcamp_rnd=extract_object(num).neural_data.analysis.syll_corr_gcamp_rnd;
+syll_corr_rcamp_rnd=extract_object(num).neural_data.analysis.syll_corr_rcamp_rnd;
+
+syll_corr_gcamp_mu=squeeze(mean(syll_corr_gcamp_rnd,3));
+syll_corr_gcamp_std=squeeze(std(syll_corr_gcamp_rnd,[],3));
+syll_corr_rcamp_mu=squeeze(mean(syll_corr_rcamp_rnd,3));
+syll_corr_rcamp_std=squeeze(std(syll_corr_rcamp_rnd,[],3));
+
+syll_corr_gcampz=(syll_corr_gcamp-syll_corr_gcamp_mu)./syll_corr_gcamp_std;
+syll_corr_rcampz=(syll_corr_rcamp-syll_corr_rcamp_mu)./syll_corr_rcamp_std;
 
 % p-val (right tail)
 
 use_idx=1:181;
-tmp=squeeze(max(corr_mat_gcamp_rnd(use_idx,:,:)));
-tmp2=repmat(max(corr_mat_gcamp(use_idx,:))',[1 1e3]);
+tmp=squeeze(max(syll_corr_gcamp_rnd(use_idx,:,:)));
+tmp2=repmat(max(syll_corr_gcamp(use_idx,:))',[1 1e3]);
 
 pval_right_gcamp=mean(tmp>tmp2,2);
 
-tmp=squeeze(max(corr_mat_rcamp_rnd(use_idx,:,:)));
-tmp2=repmat(max(corr_mat_rcamp(use_idx,:))',[1 1e3]);
+tmp=squeeze(max(syll_corr_rcamp_rnd(use_idx,:,:)));
+tmp2=repmat(max(syll_corr_rcamp(use_idx,:))',[1 1e3]);
 
 pval_right_rcamp=mean(tmp>tmp2,2);
 
 % p-val (left tail)
 
-tmp=squeeze(min(corr_mat_gcamp_rnd(use_idx,:,:)));
-tmp2=repmat(min(corr_mat_gcamp(use_idx,:))',[1 1e3]);
+tmp=squeeze(min(syll_corr_gcamp_rnd(use_idx,:,:)));
+tmp2=repmat(min(syll_corr_gcamp(use_idx,:))',[1 1e3]);
 
 pval_left_gcamp=mean(tmp<tmp2,2);
 
-tmp=squeeze(min(corr_mat_rcamp_rnd(use_idx,:,:)));
-tmp2=repmat(min(corr_mat_rcamp(use_idx,:))',[1 1e3]);
+tmp=squeeze(min(syll_corr_rcamp_rnd(use_idx,:,:)));
+tmp2=repmat(min(syll_corr_rcamp(use_idx,:))',[1 1e3]);
 
 pval_left_rcamp=mean(tmp<tmp2,2);
 
@@ -150,18 +157,20 @@ pval_left_rcamp=mean(tmp<tmp2,2);
 % plotting, make matrix like we did for gcamp, left to right pos then right
 % to left neg
 
-pos_hits_rcamp=find(pval_right_rcamp<.05&~isnan(min(corr_mat_rcamp))');
-neg_hits_rcamp=find(pval_left_rcamp<.05&~isnan(min(corr_mat_rcamp))');
+p_thresh=.05;
 
-pos_hits_gcamp=find(pval_right_gcamp<.05&~isnan(min(corr_mat_gcamp))');
-neg_hits_gcamp=find(pval_left_gcamp<.05&~isnan(min(corr_mat_gcamp))');
+pos_hits_rcamp=find(pval_right_rcamp<p_thresh&~isnan(min(syll_corr_rcamp))');
+neg_hits_rcamp=find(pval_left_rcamp<p_thresh&~isnan(min(syll_corr_rcamp))');
+
+pos_hits_gcamp=find(pval_right_gcamp<p_thresh&~isnan(min(syll_corr_gcamp))');
+neg_hits_gcamp=find(pval_left_gcamp<p_thresh&~isnan(min(syll_corr_gcamp))');
 
 pos_hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
 neg_hits_all=unique([neg_hits_rcamp;neg_hits_gcamp]);
 
 kernel=normpdf(-50:50,0,8);
-use_mat_rcampz=corr_mat_rcampz(:,pos_hits_all);
-use_mat_gcampz=corr_mat_gcampz(:,pos_hits_all);
+use_mat_rcampz=syll_corr_rcampz(:,pos_hits_all);
+use_mat_gcampz=syll_corr_gcampz(:,pos_hits_all);
 
 
 for i=1:length(pos_hits_all)
