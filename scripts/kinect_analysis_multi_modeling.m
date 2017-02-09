@@ -34,6 +34,8 @@ for ii=1:length(extract_object)
         onset_vec(extract_object(num).behavior_model.state_starts{usage_idx(i)})=1;
         onset_vec=conv(onset_vec,kernel,'same');
 
+        % swap out with triggered average
+        
         syll_corr_gcamp(:,i)=xcorr(zscore(onset_vec),zscore(phot(num).traces(1).dff),max_lag,'coeff');
         syll_corr_rcamp(:,i)=xcorr(zscore(onset_vec),zscore(phot(num).traces(2).dff),max_lag,'coeff');
 
