@@ -112,17 +112,17 @@ close(v)
 
 %% two color z-score analysis (take syll_corr)
 
-num=5;
+num=6;
 
 syll_corr_gcamp=extract_object(num).neural_data.analysis.syll_corr_gcamp;
 syll_corr_rcamp=extract_object(num).neural_data.analysis.syll_corr_rcamp;
 syll_corr_gcamp_rnd=extract_object(num).neural_data.analysis.syll_corr_gcamp_rnd;
 syll_corr_rcamp_rnd=extract_object(num).neural_data.analysis.syll_corr_rcamp_rnd;
 
-syll_corr_gcamp_mu=squeeze(mean(syll_corr_gcamp_rnd,3));
-syll_corr_gcamp_std=squeeze(std(syll_corr_gcamp_rnd,[],3));
-syll_corr_rcamp_mu=squeeze(mean(syll_corr_rcamp_rnd,3));
-syll_corr_rcamp_std=squeeze(std(syll_corr_rcamp_rnd,[],3));
+syll_corr_gcamp_mu=squeeze(mean(syll_corr_gcamp_rnd,1));
+syll_corr_gcamp_std=squeeze(std(syll_corr_gcamp_rnd,[],1));
+syll_corr_rcamp_mu=squeeze(mean(syll_corr_rcamp_rnd,1));
+syll_corr_rcamp_std=squeeze(std(syll_corr_rcamp_rnd,[],1));
 
 syll_corr_gcampz=(syll_corr_gcamp-syll_corr_gcamp_mu)./syll_corr_gcamp_std;
 syll_corr_rcampz=(syll_corr_rcamp-syll_corr_rcamp_mu)./syll_corr_rcamp_std;
@@ -130,12 +130,12 @@ syll_corr_rcampz=(syll_corr_rcamp-syll_corr_rcamp_mu)./syll_corr_rcamp_std;
 % p-val (right tail)
 
 use_idx=30:151;
-tmp=squeeze(max(syll_corr_gcamp_rnd(use_idx,:,:)));
+tmp=squeeze(max(syll_corr_gcamp_rnd(:,use_idx,:),[],2))';
 tmp2=repmat(max(syll_corr_gcamp(use_idx,:))',[1 1e3]);
 
 pval_right_gcamp=mean(tmp>tmp2,2);
 
-tmp=squeeze(max(syll_corr_rcamp_rnd(use_idx,:,:)));
+tmp=squeeze(max(syll_corr_rcamp_rnd(:,use_idx,:),[],2))';
 tmp2=repmat(max(syll_corr_rcamp(use_idx,:))',[1 1e3]);
 
 pval_right_rcamp=mean(tmp>tmp2,2);
@@ -143,12 +143,12 @@ pval_right_rcamp=mean(tmp>tmp2,2);
 
 % p-val (left tail)
 
-tmp=squeeze(min(syll_corr_gcamp_rnd(use_idx,:,:)));
+tmp=squeeze(max(syll_corr_gcamp_rnd(:,use_idx,:),[],2))';
 tmp2=repmat(min(syll_corr_gcamp(use_idx,:))',[1 1e3]);
 
 pval_left_gcamp=mean(tmp<tmp2,2);
 
-tmp=squeeze(min(syll_corr_rcamp_rnd(use_idx,:,:)));
+tmp=squeeze(max(syll_corr_gcamp_rnd(:,use_idx,:),[],2))';
 tmp2=repmat(min(syll_corr_rcamp(use_idx,:))',[1 1e3]);
 
 pval_left_rcamp=mean(tmp<tmp2,2);
@@ -169,8 +169,17 @@ neg_hits_gcamp=find(pval_left_gcamp<p_thresh&~isnan(min(syll_corr_gcamp))');
 pos_hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
 neg_hits_all=unique([neg_hits_rcamp;neg_hits_gcamp]);
 hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
+%hits_all=unique([pos_hits_rcamp;neg_hits_rcamp;pos_hits_gcamp;neg_hits_gcamp]);
+
+
+% exponential moving average
+alf=.95;
+coeffs=(ones(1,20).*alf).^[1:20];
+coeffs=coeffs./sum(coeffs);
 
 kernel=normpdf(-50:50,0,8);
+%kernel=coeffs;
+
 use_mat_rcampz=syll_corr_rcampz(:,hits_all);
 use_mat_gcampz=syll_corr_gcampz(:,hits_all);
 
@@ -226,8 +235,112 @@ caxis([clims]);
 set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
 box off;
 
-disp([[1:length(hits_all)]' hits_all(pos_rcamp_idx2(:)) hits_all(pos_gcamp_idx2(:))]);
+linkaxes(ax,'x');
+
+
 whitebg(fig);
 set(fig,'Color',[0 0 0],'InvertHardCopy','off');
 
 colormap(jet);
+
+
+fig=figure();
+
+ax(1)=subplot(2,2,1);
+imagesc(xvec(use_idx),[],zscore(use_mat_rcampz(use_idx,pos_rcamp_idx2))');
+caxis([clims]);
+axis off;
+
+
+ax(2)=subplot(2,2,2);
+imagesc(xvec(use_idx),[],zscore(use_mat_gcampz(use_idx,pos_rcamp_idx2))');
+caxis([clims]);
+axis off;
+
+ax(3)=subplot(2,2,3);
+imagesc(xvec(use_idx),[],zscore(use_mat_rcampz(use_idx,pos_gcamp_idx2))');
+caxis([clims]);
+set(gca,'YTick',[],'XTick',[-2:2:2],'FontSize',14);
+box off;
+
+ax(4)=subplot(2,2,4);
+imagesc(xvec(use_idx),[],zscore(use_mat_gcampz(use_idx,pos_gcamp_idx2))');
+caxis([clims]);
+set(gca,'YTick',[],'XTick',[-2:2:2],'FontSize',14);
+box off;
+
+disp([[1:length(hits_all)]' hits_all(pos_rcamp_idx2(:)) hits_all(pos_gcamp_idx2(:))]);
+whitebg(fig);
+set(fig,'Color',[0 0 0],'InvertHardCopy','off');
+linkaxes(ax,'x');
+
+
+colormap(jet);
+
+
+%%
+
+use_frames=extract_object(num).load_oriented_frames(true);
+
+
+% use template matching to find good examples of interesting syllables,
+% then render the movie
+
+%%
+
+
+xvec=(-90:90)/30;
+for i=1:length(list)    
+    syll_fig.([sprintf('syllable_%i',list(i))])=figure();
+    plot(xvec,conv(syll_corr_gcampz(:,list(i)),coeffs,'same'),'g-');
+    hold on;
+    plot(xvec,conv(syll_corr_rcampz(:,list(i)),coeffs,'same'),'r-');
+    box off;
+    set(gca,'XTick',[-3 0 3],'FontSize',12,'TickDir','out','TickLength',[.025 .025]);
+    mx_val=round(max(abs([syll_corr_gcampz(:,list(i));syll_corr_rcampz(:,list(i))])));
+    ylim([-mx_val mx_val]);
+    plot([0 0],[-mx_val mx_val],'w-');
+    set(syll_fig.([sprintf('syllable_%i',list(i))]),'position',[300 300 325 300],'paperpositionmode','auto','InvertHardcopy','off');
+    markolab_multi_fig_save(syll_fig.([sprintf('syllable_%i',list(i))]),'~/Desktop/quickfigs/',...
+            sprintf('twocolor_syllable_%i',list(i)),'eps,fig,png','renderer','painters');
+end
+
+
+
+%%
+
+examples=10;
+list=[13 31 7];
+
+for i=1:length(list)
+    
+    [matches,score]=extract_object(num).template_match(list(i),1,10);
+    pk_vals=score(matches);
+    [~,pk_sorting]=sort(pk_vals,'descend');
+    matches_sorted=matches(pk_sorting);
+    
+    for j=1:examples
+    
+        hit_onset=matches_sorted(j);
+        syll_idx=beh(num).labels==list(i);
+        syll_idx=score(hit_onset-60:hit_onset+60)>1;
+        mov_frames=use_frames(:,:,hit_onset-60:hit_onset+60);
+        marker_coords=cell(1,size(mov_frames,3));
+        
+        for k=1:length(marker_coords)
+            if syll_idx(k)
+                marker_coords{k}=[(1:10)' (1:10)'];
+            end
+        end
+        
+        kinect_extract.animate_direct(mov_frames,...
+            'cmap',jet(256),'marker_coords',marker_coords,'filename',sprintf('syllable_%i_%i',list(i),j),...
+            'clim',[0 80]);
+        
+    end
+    
+end
+
+
+
+
