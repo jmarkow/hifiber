@@ -112,7 +112,7 @@ close(v)
 
 %% two color z-score analysis (take syll_corr)
 
-num=7;
+num=5;
 
 syll_corr_gcamp=extract_object(num).neural_data.analysis.syll_corr_gcamp;
 syll_corr_rcamp=extract_object(num).neural_data.analysis.syll_corr_rcamp;
@@ -139,6 +139,7 @@ tmp=squeeze(max(syll_corr_rcamp_rnd(use_idx,:,:)));
 tmp2=repmat(max(syll_corr_rcamp(use_idx,:))',[1 1e3]);
 
 pval_right_rcamp=mean(tmp>tmp2,2);
+
 
 % p-val (left tail)
 
@@ -167,11 +168,11 @@ neg_hits_gcamp=find(pval_left_gcamp<p_thresh&~isnan(min(syll_corr_gcamp))');
 
 pos_hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
 neg_hits_all=unique([neg_hits_rcamp;neg_hits_gcamp]);
+hits_all=unique([pos_hits_rcamp;pos_hits_gcamp]);
 
 kernel=normpdf(-50:50,0,8);
-use_mat_rcampz=syll_corr_rcampz(:,pos_hits_all);
-use_mat_gcampz=syll_corr_gcampz(:,pos_hits_all);
-
+use_mat_rcampz=syll_corr_rcampz(:,hits_all);
+use_mat_gcampz=syll_corr_gcampz(:,hits_all);
 
 for i=1:length(pos_hits_all)
     use_mat_gcampz(:,i)=conv(use_mat_gcampz(:,i),kernel,'same');
@@ -195,7 +196,6 @@ end
 
 % smoothing
 
-
 % and the plotting...lay out syllablen idx to match up movies
 max_lag=90;
 xvec=[-90:90]/30;
@@ -204,28 +204,29 @@ clims=[-2.5 2.5];
 fig=figure();
 
 ax(1)=subplot(2,2,1);
-imagesc(xvec(use_idx),[],zscore(use_mat_rcampz(use_idx,pos_rcamp_idx2))');
+imagesc(xvec(use_idx),[],(use_mat_rcampz(use_idx,pos_rcamp_idx2))');
 caxis([clims]);
 axis off;
 
+
 ax(2)=subplot(2,2,2);
-imagesc(xvec(use_idx),[],zscore(use_mat_gcampz(use_idx,pos_rcamp_idx2))');
+imagesc(xvec(use_idx),[],(use_mat_gcampz(use_idx,pos_rcamp_idx2))');
 caxis([clims]);
 axis off;
 
 ax(3)=subplot(2,2,3);
-imagesc(xvec(use_idx),[],zscore(use_mat_rcampz(use_idx,pos_gcamp_idx2))');
+imagesc(xvec(use_idx),[],(use_mat_rcampz(use_idx,pos_gcamp_idx2))');
 caxis([clims]);
 set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
 box off;
 
 ax(4)=subplot(2,2,4);
-imagesc(xvec(use_idx),[],zscore(use_mat_gcampz(use_idx,pos_gcamp_idx2))');
+imagesc(xvec(use_idx),[],(use_mat_gcampz(use_idx,pos_gcamp_idx2))');
 caxis([clims]);
 set(gca,'YTick',[],'XTick',[-3:3:3],'FontSize',14);
 box off;
 
-disp([[1:length(pos_hits_all)]' pos_hits_all(pos_rcamp_idx2(:)) pos_hits_all(pos_gcamp_idx2(:))]);
+disp([[1:length(hits_all)]' hits_all(pos_rcamp_idx2(:)) hits_all(pos_gcamp_idx2(:))]);
 whitebg(fig);
 set(fig,'Color',[0 0 0],'InvertHardCopy','off');
 

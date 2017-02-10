@@ -1,9 +1,12 @@
-
-
-% like for the talk we should align both to rp transitions first
-
 % then for all syllables, get significance, sort by z-score
 
+beh=extract_object.get_behavior_model;
+phot=extract_object.get_photometry;
+usage=beh.get_syllable_usage;
+usage=usage/sum(usage);
+
+[~,idx]=sort(usage,'descend');
+nsyllables=sum(usage>.001);
 
 for ii=1:length(extract_object)
     
@@ -14,11 +17,9 @@ for ii=1:length(extract_object)
     end
     
     nrands=phot(num).options.photometry.nrands;
-    usage=extract_object.get_syllable_usage;
-    usage=usage/sum(usage);
-    [~,usage_idx]=sort(usage,'descend');
+     
     max_lag=90;
-    nsyllables=sum(usage>.001);
+    
     syll_corr_gcamp=zeros(max_lag*2+1,nsyllables);
     syll_corr_rcamp=zeros(max_lag*2+1,nsyllables);
 
@@ -30,18 +31,33 @@ for ii=1:length(extract_object)
     
     for i=1:nsyllables
 
-        onset_vec=zeros(size(extract_object(num).behavior_model.labels));
-        onset_vec(extract_object(num).behavior_model.state_starts{usage_idx(i)})=1;
-        onset_vec=conv(onset_vec,kernel,'same');
+%         onset_vec=zeros(size(extract_object(num).behavior_model.labels));
+%         onset_vec(extract_object(num).behavior_model.state_starts{usage_idx(i)})=1;
+%         onset_vec=conv(onset_vec,kernel,'same');
 
         % swap out with triggered average
         
-        syll_corr_gcamp(:,i)=xcorr(zscore(onset_vec),zscore(phot(num).traces(1).dff),max_lag,'coeff');
-        syll_corr_rcamp(:,i)=xcorr(zscore(onset_vec),zscore(phot(num).traces(2).dff),max_lag,'coeff');
+        matches=beh(num).state_starts{idx(i)};
+        %matches=extract_object(num).template_match(idx(i),1);
+        
+        if isempty(matches)
+            continue;
+        end
+        
+        syll_corr_gcamp(:,i)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(1).dff),...
+            matches,...    
+            max_lag),2);
+        syll_corr_rcamp(:,i)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(2).dff),...
+            matches,...    
+            max_lag),2);
 
         for j=1:nrands       
-            syll_corr_gcamp_rnd(:,i,j)=xcorr(zscore(onset_vec),zscore(phot(num).traces(1).dff_rnd(:,j)),max_lag,'coeff');
-            syll_corr_rcamp_rnd(:,i,j)=xcorr(zscore(onset_vec),zscore(phot(num).traces(2).dff_rnd(:,j)),max_lag,'coeff');
+            syll_corr_gcamp_rnd(:,i,j)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(1).dff_rnd(:,j)),...
+                matches,...
+             max_lag),2);
+            syll_corr_rcamp_rnd(:,i,j)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(2).dff_rnd(:,j)),...
+                matches,...    
+             max_lag),2);
         end
 
         timer_upd(i);

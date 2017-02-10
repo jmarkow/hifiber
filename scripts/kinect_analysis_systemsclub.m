@@ -16,7 +16,7 @@ scores=frames'*features.svd.U;
 
 % animate that shit
 
-v=VideoWriter('kinect_example.mp4','mpeg-4');
+tv=VideoWriter('kinect_example.mp4','mpeg-4');
 v.FrameRate=30;
 v.Quality=100;
 
