@@ -23,8 +23,8 @@ for ii=1:length(extract_object)
     syll_corr_gcamp=zeros(max_lag*2+1,nsyllables);
     syll_corr_rcamp=zeros(max_lag*2+1,nsyllables);
 
-    syll_corr_gcamp_rnd=zeros(max_lag*2+1,nsyllables,nrands);
-    syll_corr_rcamp_rnd=zeros(max_lag*2+1,nsyllables,nrands);
+    syll_corr_gcamp_rnd=zeros(nrands,max_lag*2+1,nsyllables);
+    syll_corr_rcamp_rnd=zeros(nrands,max_lag*2+1,nsyllables);
 
     kernel=normpdf(-10:10,0,1.5);
     timer_upd=kinect_extract.proc_timer(nsyllables);
@@ -51,15 +51,13 @@ for ii=1:length(extract_object)
             matches,...    
             max_lag),2);
 
-        for j=1:nrands       
-            syll_corr_gcamp_rnd(:,i,j)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(1).dff_rnd(:,j)),...
-                matches,...
-                max_lag),2);
-            syll_corr_rcamp_rnd(:,i,j)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(2).dff_rnd(:,j)),...
-                matches,...    
-                max_lag),2);
-        end
-
+        syll_corr_gcamp_rnd(:,:,i)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(1).dff_rnd),...
+            matches,...
+            max_lag),3)';
+        syll_corr_rcamp_rnd(:,:,i)=nanmean(kinect_extract.window_data(zscore(phot(num).traces(2).dff_rnd),...
+            matches,...    
+            max_lag),3)';
+        
         timer_upd(i);
 
     end

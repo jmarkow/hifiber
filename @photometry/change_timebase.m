@@ -13,5 +13,6 @@ for i=1:length(OBJ.traces)
 		OBJ.traces(i).(trace_types{j})=new_trace;
 	end
 end
+
 OBJ.timestamps=NEW_TIMESTAMPS;
-OBJ.metadata.fs=round(mean(1./diff(NEW_TIMESTAMPS)));
+OBJ.metadata.fs=round(1./mean(diff(NEW_TIMESTAMPS)));

@@ -1,4 +1,4 @@
-%%% script for analyzing the gcamp6f mice
+    %%% script for analyzing the gcamp6f mice
 
 % first use date cutoffs for when we did raw and modulated recordings, processing should be the same...
 % 2016-09-02, everything after this two channels, first green second red, inverted during acquisition
