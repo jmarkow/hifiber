@@ -13,6 +13,10 @@ peak_dist=cell(size(labels));
 timer_upd=kinect_extract.proc_timer(nkappas*nsessions);
 counter=0;
 test=zeros(nkappas,nsessions);
+test_mu=zeros(nkappas,nsessions);
+test_var=zeros(nkappas,nsessions);
+test_skew=zeros(nkappas,nsessions);
+test_mode=zeros(nkappas,nsessions);
 
 for i=1:nkappas
 
@@ -38,6 +42,11 @@ for i=1:nkappas
        
         tmp=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(extract_object(j).projections.rp_changepoint_score));
         test(i,j)=tmp(2,1);
+        idxs=find(abs(diff([-1;labels{i,j}(:)]))>0);
+        test_mu(i,j)=mean(diff(idxs));
+        test_var(i,j)=var(diff(idxs));
+        test_skew(i,j)=skewness(diff(idxs));
+        test_mode(i,j)=mode(diff(idxs));
         counter=counter+1;
         timer_upd(counter);
         
@@ -72,7 +81,7 @@ for i=1:nkappas
         counter=counter+1;
         
         if ~isnan(labels{i,j})
-            model_changepoints=abs(diff([-1;labels{i,j}]))>0;
+            model_changepoints=abs(diff([-1;extract_object(j).get_original_timebase(labels{i,j}(:))]))>0;
         else
             continue;
         end
@@ -81,10 +90,10 @@ for i=1:nkappas
             continue;
         end
         
-        %         tmp=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(1).dff,phot_kernel,'same')));
-        %         tmp2=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(2).dff,phot_kernel,'same')));
-        %
-        
+%                 tmp=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(1).dff,phot_kernel,'same')));
+%                 tmp2=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(2).dff,phot_kernel,'same')));
+%         
+%         
         wins=kinect_extract.window_data(zscore(phot(j).traces(1).dff),find(model_changepoints)+1,5);
         wins2=kinect_extract.window_data(zscore(phot(j).traces(2).dff),find(model_changepoints)+1,5);
         
@@ -93,10 +102,10 @@ for i=1:nkappas
         wins3=kinect_extract.window_data(zscore(extract_object(j).projections.rp_changepoint_score),find(model_changepoints)+1,5);
         cp_corr(i,j)=max(nanmean(wins3,2));
         
-        
-        %gcamp_model_corr(i,j)=tmp(2,1);
-        %rcamp_model_corr(i,j)=tmp2(2,1);
-        
+%         
+%         gcamp_model_corr(i,j)=tmp(2,1);
+%         rcamp_model_corr(i,j)=tmp2(2,1);
+%         
         timer_upd(counter);
         
         
