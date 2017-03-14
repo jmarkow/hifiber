@@ -10,50 +10,85 @@
 peakthresh=.1;
 peak_dist=cell(size(labels));
 
-timer_upd=kinect_extract.proc_timer(nkappas*nsessions);
+timer_upd=kinect_extract.proc_timer(nkappas*nsessions,'frequency',10);
 counter=0;
-test=zeros(nkappas,nsessions);
-test_mu=zeros(nkappas,nsessions);
-test_var=zeros(nkappas,nsessions);
-test_skew=zeros(nkappas,nsessions);
-test_mode=zeros(nkappas,nsessions);
+test=struct() 
+
+kld=@(x,y) sum(x.*log2(x./y)); 
+bins=[0:.01:5];
 
 for i=1:nkappas
-
+    
     
     for j=1:nsessions
-       
-%        [~,locs]=findpeaks(extract_object(j).projections.rp_changepoint_score,'minpeakheight',peakthresh);
-%        
-       if ~isnan(labels{i,j})
-           model_changepoints=abs(diff([-1;labels{i,j}(:)]))>0;
-       else
-           continue;
-       end
-%        
-%        peak_dist{i,j}=zeros(size(model_changepoints));
-%        
-%        for k=1:length(model_changepoints)
-%           peak_dist{i,j}(k)=min(abs(model_changepoints(k)-locs)); 
-%        end
-
+        
+        %        [~,locs]=findpeaks(extract_object(j).projections.rp_changepoint_score,'minpeakheight',peakthresh);
+        %
+        if ~isnan(labels{i,j})
+            model_changepoints=abs(diff([-1;labels{i,j}(:)]))>0;
+        else
+            continue;
+        end
+        %
+        %        peak_dist{i,j}=zeros(size(model_changepoints));
+        %
+        %        for k=1:length(model_changepoints)
+        %           peak_dist{i,j}(k)=min(abs(model_changepoints(k)-locs));
+        %        end
+        
         kernel=normpdf(-10:10,0,2);
         kernel=kernel./sum(kernel);
-       
+        
         tmp=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(extract_object(j).projections.rp_changepoint_score));
-        test(i,j)=tmp(2,1);
+        
+        test.corr(i,j)=tmp(2,1);
+        
         idxs=find(abs(diff([-1;labels{i,j}(:)]))>0);
-        test_mu(i,j)=mean(diff(idxs));
-        test_var(i,j)=var(diff(idxs));
-        test_skew(i,j)=skewness(diff(idxs));
-        test_mode(i,j)=mode(diff(idxs));
+        [~,locs]=findpeaks(zscore(extract_object(j).projections.rp_changepoint_score),'minpeakheight',.25);
+        
+        isi=diff(idxs)/30;
+        isi_rps=diff(locs)/30;
+        
+        p1=histc(isi,bins);
+        p2=histc(isi_rps,bins);
+        
+        p1=p1+eps;
+        p2=p2+eps;
+        p1=p1./sum(p1);
+        p2=p2./sum(p2);
+        m=(p1+p2)*.5;
+        
+        %kld_use=~(p1==0|p2==0);
+        
+        %p1=p1(kld_use);
+        %p2=p2(kld_use);
+        
+        test.mu(i,j)=mean(isi);
+        test.std(i,j)=std(isi);
+        test.skew(i,j)=skewness(isi);
+        test.mode(i,j)=mode(isi);
+        
+        test.jsd(i,j)=.5*kld(p1,m)+.5*kld(p2,m);
+        
         counter=counter+1;
         timer_upd(counter);
         
     end
 end
 
-test=reshape(test,sqrt(size(test,1)),sqrt(size(test,1)),size(test,2));
+kappas=cellfun(@(x) x.kappa,scan_dicts);
+gammas=cellfun(@(x) x.gamma,scan_dicts);
+
+quantities=fieldnames(test);
+edge_size=sqrt(nkappas);
+
+for i=1:length(quantities)
+    test.(quantities{i})=reshape(test.(quantities{i}),length(unique(gammas)),length(unique(kappas)),[]);
+end
+
+%%
+
+% make a series of panels fool
 
 %% base on neural activity
 
@@ -90,21 +125,21 @@ for i=1:nkappas
             continue;
         end
         
-%                 tmp=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(1).dff,phot_kernel,'same')));
-%                 tmp2=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(2).dff,phot_kernel,'same')));
-%         
-%         
-        wins=kinect_extract.window_data(zscore(phot(j).traces(1).dff),find(model_changepoints)+1,5);
-        wins2=kinect_extract.window_data(zscore(phot(j).traces(2).dff),find(model_changepoints)+1,5);
+                tmp=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(1).dff,phot_kernel,'same')));
+                tmp2=corrcoef(zscore(conv(single(model_changepoints),kernel,'same')),zscore(conv(phot(j).traces(2).dff,phot_kernel,'same')));
         
-        gcamp_model_corr(i,j)=max(nanmean(wins,2));
-        rcamp_model_corr(i,j)=max(nanmean(wins2,2));
-        wins3=kinect_extract.window_data(zscore(extract_object(j).projections.rp_changepoint_score),find(model_changepoints)+1,5);
-        cp_corr(i,j)=max(nanmean(wins3,2));
+        
+%         wins=kinect_extract.window_data(zscore(phot(j).traces(1).dff),find(model_changepoints)+1,5);
+%         wins2=kinect_extract.window_data(zscore(phot(j).traces(2).dff),find(model_changepoints)+1,5);
+%         
+%         gcamp_model_corr(i,j)=max(nanmean(wins,2));
+%         rcamp_model_corr(i,j)=max(nanmean(wins2,2));
+%         wins3=kinect_extract.window_data(zscore(extract_object(j).projections.rp_changepoint_score),find(model_changepoints)+1,5);
+%         cp_corr(i,j)=max(nanmean(wins3,2));
         
 %         
-%         gcamp_model_corr(i,j)=tmp(2,1);
-%         rcamp_model_corr(i,j)=tmp2(2,1);
+        gcamp_model_corr(i,j)=tmp(2,1);
+        rcamp_model_corr(i,j)=tmp2(2,1);
 %         
         timer_upd(counter);
         
