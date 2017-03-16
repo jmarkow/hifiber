@@ -17,7 +17,7 @@ bins=[0:.005:2.5];
 
 test.isi_rps=[];
 for i=1:nsessions
-    [~,locs]=findpeaks(zscore(extract_object(j).projections.rp_changepoint_score),'minpeakheight',.5);
+    [~,locs]=findpeaks(zscore(extract_object(i).projections.rp_changepoint_score),'minpeakheight',.5);
     isi_rps=diff(locs)/30;
     test.isi_rps=[test.isi_rps;isi_rps];
 end
@@ -69,7 +69,7 @@ for i=1:length(measures)
     sum_stats.isi_rps.(measure_names{i})=measures{i}(test.isi_rps);
 end    
 
-sum_stats.isi.corr=reshape(tmp_corr,ngammas,nkappas,[]);
+sum_stats.isi.corr=mean(reshape(tmp_corr,ngammas,nkappas,[]),3);
 
 %%
 
@@ -99,7 +99,6 @@ end
 
 sum_stats.isi.jsd=reshape(sum_stats.isi.jsd,ngammas,nkappas);
 
-%%
 sum_stats.isi.nstates=nan(nparams,1);
 
 for i=1:nparams
@@ -127,7 +126,7 @@ delta_win=10;
 kernel=normpdf(-5:5,0,1);
 kernel=kernel./sum(kernel);
 rcamp_kernel=(ones(1,500)*.65).^[1:500];
-rcamp_kernel=phot_kernel./sum(phot_kernel);
+rcamp_kernel=rcamp_kernel./sum(rcamp_kernel);
 trace_use='dff_delta';
 
 gcamp_score={};
@@ -163,10 +162,10 @@ ax(2)=subplot(2,2,2);
 plot(smooth_rcamp);
 
 ax(3)=subplot(2,2,3);
-plot(markolab_deltacoef(zscore(phot(5).traces(1).dff),10));
+plot(gcamp_score{5});
 
 ax(4)=subplot(2,2,4);
-plot(markolab_deltacoef(zscore(smooth_rcamp),10));
+plot(rcamp_score{5});
 
 linkaxes(ax,'x');
 
@@ -227,7 +226,7 @@ rcamp_model_corr=reshape(rcamp_model_corr,nkappas,ngammas,[]);
 
 xvec=log10(unique(kappas));
 yvec=log10(unique(gammas));
-plot_stats={'mean','mode','cv','std','skew','nstates','jsd'};
+plot_stats={'mean','mode','cv','std','skew','nstates','jsd','corr'};
 figs.summary_stats=figure();
 sum_stats.isi.cv=sum_stats.isi.std./sum_stats.isi.mean;
 [ynans,xnans]=find(isnan(sum_stats.isi.mean));
@@ -271,7 +270,7 @@ fig.d1d2=figure();
 
 subplot(1,2,1);
    
-useim=mean(gcamp_model_corr(:,:,2:6),3);
+useim=mean(gcamp_model_corr(:,:,3:6),3);
 clims(1)=min(useim(:));
 clims(2)=max(useim(:));
 new_clims=clims*10;
@@ -291,7 +290,7 @@ end
 
 image(xvec,yvec,rgbim);
 axis xy;
-
+ 
 c=colorbar();
 colormap(fee_map)
 yticks=get(c,'ticks');
@@ -303,7 +302,7 @@ title('D2');
 
 subplot(1,2,2);
    
-useim=mean(rcamp_model_corr(:,:,2:6),3);
+useim=mean(rcamp_model_corr(:,:,3:6),3);
 clims(1)=min(useim(:));
 clims(2)=max(useim(:));
 new_clims=clims*10;
