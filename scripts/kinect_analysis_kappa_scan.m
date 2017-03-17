@@ -122,6 +122,8 @@ rcamp_model_corr=zeros(nkappas,nsessions);
 cp_corr=zeros(nkappas,nsessions);
 counter=0;
 
+%%
+
 delta_win=10;
 kernel=normpdf(-5:5,0,1);
 kernel=kernel./sum(kernel);
@@ -135,7 +137,7 @@ for i=1:nsessions
     
     % scores for correlation
     if isempty(phot(i).traces)
-        continue;
+        continue; 
     end
     
     gcamp_score{i}=markolab_deltacoef(zscore(phot(i).traces(1).dff),delta_win);
@@ -154,20 +156,32 @@ end
 fig.scoresample=figure();
 
 smooth_rcamp=[conv(phot(5).traces(2).dff,rcamp_kernel(end:-1:1),'valid');zeros(numel(rcamp_kernel)-1,1)];
+smooth_rcamp(smooth_rcamp<0)=0;
+use_gcamp=phot(5).traces(1).dff;
+use_gcamp(use_gcamp<0)=0;
+tvec=[1:length(use_gcamp)]/30;
 ax=[];
 ax(1)=subplot(2,2,1);
-plot(phot(5).traces(1).dff);
+plot(tvec,use_gcamp*1e2);
+ylim([0 20]);
+box off;
 
 ax(2)=subplot(2,2,2);
-plot(smooth_rcamp);
+plot(tvec,smooth_rcamp*1e2);
+ylim([0 10]);
+box off;
 
 ax(3)=subplot(2,2,3);
-plot(gcamp_score{5});
+plot(tvec,gcamp_score{5}*1e2);
+box off;
 
 ax(4)=subplot(2,2,4);
-plot(rcamp_score{5});
+plot(tvec,rcamp_score{5}*1e2);
+box off;
 
 linkaxes(ax,'x');
+set(ax,'TickLength',[0 0]);
+xlim([1549 1560]);
 
 %%
 
