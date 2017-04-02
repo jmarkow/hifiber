@@ -85,7 +85,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 
 		% doesn't require the kinect_extract object
 		upd=proc_timer(nloops,varargin)
-
+		new_ref=get_demod_reference(signal, sampling_rate, ref_fs, ref_sig)
 		% function obj=loadobj(s)
 		% 	if isstruct(s)
 		% 		newobj=photometry;
