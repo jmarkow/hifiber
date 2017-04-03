@@ -18,6 +18,10 @@ pos_edges=find(SIG(idx)<.5&SIG(idx+1)>=.5);
 period=mean(diff(pos_edges))/SAMPLING_RATE;
 fs=1./period;
 
+TS=TS(~isnan(SIG));
+SIG=SIG(~isnan(SIG));
+SIG=SIG(:);
+
 % estimate the duty cycle, you said duty
 
 duty_est=mean(dutycycle(SIG))*1e2;
@@ -25,7 +29,7 @@ init_params=[fs 0 duty_est];
 
 ts=[0:sig_len-1]/SAMPLING_RATE;
 FIT_FUN= @(b,x) square(2*pi*x*b(1)+b(2),b(3));
-obj_fun= @(b) FIT_FUN(b,TS)'-SIG;
+obj_fun= @(b) FIT_FUN(b,TS)-SIG;
 
 % yeah dun xcorr that phase shift!
 

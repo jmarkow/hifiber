@@ -67,14 +67,19 @@ end
 % use all this crap to derive a least squares estimate of the reference
 % amp is rms obvi, baseline shift is mean obvi, freq is peak of fft OBVI, and phase shift is whatevs
 
-% figure out nans later, whateverss just exclude them from ts or something
 
-init_params=[2*nanvar(SIG) freq_init 0 nanmean(SIG)];
+init_params=[nanstd(SIG) freq_init 0 nanmean(SIG)];
+
+% exclude any bad datersss
+TS=TS(~isnan(SIG));
+SIG=SIG(~isnan(SIG));
+
+SIG=SIG(:);
 
 fprintf('Initial parameters: %g\n',init_params)
 
 FIT_FUN= @(b,x) b(1).*(sin(2*pi*x*b(2)+b(3)))+b(4);
-obj_fun= @(b) FIT_FUN(b,TS)'-SIG;
+obj_fun= @(b) FIT_FUN(b,TS)-SIG;
 
 % works pretty well son, good job
 
@@ -83,10 +88,10 @@ obj_fun= @(b) FIT_FUN(b,TS)'-SIG;
 
 init_fit_angle=angle(hilbert(FIT_FUN(init_params,TS)));
 data_angle=angle(hilbert(SIG));
-phase_diff=angle(mean(exp(1j.*(init_fit_angle(:)-data_angle))));
+phase_diff=angle(mean(exp(1j.*(init_fit_angle(:)-data_angle(:)))));
 init_params(3)=angle(exp(1j.*(-phase_diff))); % it's 0 to start, so just get angle diff from 0 dawg
 
-fprintf('Detected a phase difference on %g(rads), correcting before optimization\n',phase_diff);
+fprintf('Detected a phase difference of %g(rads), correcting before optimization\n',phase_diff);
 
 %opts=optimset('FinDiffRelStep',[.01 .05 .1 .2],'TolFun',1e-8,'TolX',1e-8);
 PARAMS=lsqnonlin(obj_fun,init_params,[init_params(1)*.75 freq_init-20 -2*pi 0],[init_params(2)*1.25 freq_init+20 2*pi 1]);
