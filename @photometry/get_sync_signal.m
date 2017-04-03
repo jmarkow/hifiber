@@ -1,26 +1,23 @@
 function [PARAMS,FIT_FUN]=get_sync_signal(SIG,TS,SAMPLING_RATE)
 % tries to fit a squarewave to handle your shitty data
 %
-%
-%
-%
-
-% wtf did you do??
-
-
-NEW_SYNC=[];
-sig_len=numel(SIG);
-idx=1:sig_len-1;
 
 % get the period
+
+SIG=conv(SIG,[ones(3,1)],'same');
+TS=TS(~isnan(SIG));
+SIG=SIG(~isnan(SIG));
+SIG=SIG(:);
+
+% it is possible we want to do this piece-wise, it's rare but sometimes
+% the pulse train is off by a sample er so
+
+sig_len=numel(SIG);
+idx=1:sig_len-1;
 
 pos_edges=find(SIG(idx)<.5&SIG(idx+1)>=.5);
 period=mean(diff(pos_edges))/SAMPLING_RATE;
 fs=1./period;
-
-TS=TS(~isnan(SIG));
-SIG=SIG(~isnan(SIG));
-SIG=SIG(:);
 
 % estimate the duty cycle, you said duty
 

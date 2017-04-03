@@ -7,7 +7,7 @@ usage=beh.get_syllable_usage;
 usage=usage/sum(usage);
 
 [~,idx]=sort(usage,'descend');
-nsyllables=sum(usage>.001);
+nsyllables=sum(usage>=0);
 
 delta_win=10;
 kernel=normpdf(-5:5,0,1);

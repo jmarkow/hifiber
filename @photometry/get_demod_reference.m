@@ -5,11 +5,11 @@ function [PARAMS,FIT_FUN]=get_demod_reference(SIG,TS,SAMPLING_RATE,REF_FS,REF)
 % unless our signals are seriously corrupted/overlapping, we shouldn't need much
 % guidance to do this #blessed
 
-if nargin<4
+if nargin<5
 	REF=[];
 end
 
-if nargin<3
+if nargin<5
 	REF_FS=[];
 end
 
@@ -51,8 +51,9 @@ if isempty(REF_FS)
 
 	% frequency guess
 
-	freq_init=fvec(loc)
-	phase_init=mod(phase_fft(loc),2*pi)-pi;
+	freq_init=fvec(loc);
+	%phase_init=phase_fft(loc);
+	phase_init=0;
 
 else
 
@@ -91,7 +92,7 @@ data_angle=angle(hilbert(SIG));
 phase_diff=angle(mean(exp(1j.*(init_fit_angle(:)-data_angle(:)))));
 init_params(3)=angle(exp(1j.*(-phase_diff))); % it's 0 to start, so just get angle diff from 0 dawg
 
-fprintf('Detected a phase difference of %g(rads), correcting before optimization\n',phase_diff);
-
+%fprintf('Detected a phase difference of %g(rads), correcting before optimization\n',phase_diff);
 %opts=optimset('FinDiffRelStep',[.01 .05 .1 .2],'TolFun',1e-8,'TolX',1e-8);
+
 PARAMS=lsqnonlin(obj_fun,init_params,[init_params(1)*.75 freq_init-20 -2*pi 0],[init_params(2)*1.25 freq_init+20 2*pi 1]);

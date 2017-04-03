@@ -15,6 +15,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 		options
 		timestamps
 		traces
+		references
 		metadata
 		status
 
@@ -65,6 +66,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 				obj.metadata.channels(i).type='data';
 				obj.metadata.channels(i).reference_channel=[];
 				obj.metadata.channels(i).name=sprintf('Ch%i',i);
+				obj.metadata_channels(i).mod_freq=[];
 			end
 
 			obj.set_channel_names(CHANNEL_NAMES);
