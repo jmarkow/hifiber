@@ -1,4 +1,4 @@
-function PARAMS=get_demod_reference(SIG,SAMPLING_RATE,REF_FS,REF)
+function [PARAMS,FIT_FUN]=get_demod_reference(SIG,TS,SAMPLING_RATE,REF_FS,REF)
 % way simpler than other implementations I've seen out there, just take complex-valued
 % fft, freq/phase is equivalent to a least squares fit of a sinusoid, so there you go
 %
@@ -61,18 +61,32 @@ else
 
 end
 
-ts=[0:sig_len-1]/SAMPLING_RATE;
-ts=ts(~isnan(SIG));
+% ts=[0:sig_len-1]/SAMPLING_RATE;
+% ts=ts(~isnan(SIG));
 
 % use all this crap to derive a least squares estimate of the reference
 % amp is rms obvi, baseline shift is mean obvi, freq is peak of fft OBVI, and phase shift is whatevs
 
-init_params=[nanstd(SIG) freq_init 0 nanmean(SIG)]
+% figure out nans later, whateverss just exclude them from ts or something
 
-fit= @(b) b(1).*(sin(2*pi*ts*b(2)+b(3)))+b(4)-SIG(~isnan(SIG))';
+init_params=[2*nanvar(SIG) freq_init 0 nanmean(SIG)];
+
+fprintf('Initial parameters: %g\n',init_params)
+
+FIT_FUN= @(b,x) b(1).*(sin(2*pi*x*b(2)+b(3)))+b(4);
+obj_fun= @(b) FIT_FUN(b,TS)'-SIG;
 
 % works pretty well son, good job
 
 % blessed our lord non-linear least squares, may you guide your herd to the global minimum
+% get an initial phase shift by fitting the sinusoid and checking angle difference
 
-PARAMS=lsqnonlin(fit,init_params,[init_params(1)*.5 freq_init-5 -pi 0],[init_params(2)*2 freq_init+5 pi 1]);
+init_fit_angle=angle(hilbert(FIT_FUN(init_params,TS)));
+data_angle=angle(hilbert(SIG));
+phase_diff=angle(mean(exp(1j.*(init_fit_angle(:)-data_angle))));
+init_params(3)=angle(exp(1j.*(-phase_diff))); % it's 0 to start, so just get angle diff from 0 dawg
+
+fprintf('Detected a phase difference on %g(rads), correcting before optimization\n',phase_diff);
+
+%opts=optimset('FinDiffRelStep',[.01 .05 .1 .2],'TolFun',1e-8,'TolX',1e-8);
+PARAMS=lsqnonlin(obj_fun,init_params,[init_params(1)*.75 freq_init-20 -2*pi 0],[init_params(2)*1.25 freq_init+20 2*pi 1]);
