@@ -19,13 +19,8 @@ for i=1:length(OBJ)
 		nans=isnan(use_data);
 
 		if OBJ(i).options.photometry.mod_bandpass
-			use_data(nans)=0;
-			[b,a]=ellip(5,.2,40,...
-				[OBJ(i).metadata.traces(j).mod_freq-OBJ(i).options.photometry.mod_bandpass_bw/2 ...
-				OBJ(i).metadata.traces(j).mod_freq+OBJ(i).options.photometry.mod_bandpass_bw/2]/(OBJ(i).metadata.fs/2),...
-				'bandpass');
-			use_data=filtfilt(b,a,use_data);
-			use_data(nans)=nan;
+			use_data=photometry.bandpass(use_data,OBJ(i).metadata.traces(j).mod_freq,...
+				OBJ(i).options.photometry.mod_bandpass_bw,OBJ(i).metadata.fs);
 		end
 
 		tvec=[0:numel(OBJ(i).traces(j).raw)-1]/OBJ(i).metadata.fs;
