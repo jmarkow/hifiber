@@ -28,8 +28,11 @@ for i=1:length(OBJ)
 
 			use_data=photometry.bandpass(traces(:,j),OBJ(i).metadata.traces(k).mod_freq,...
 				OBJ(i).options.photometry.mod_bandpass_bw,OBJ(i).metadata.fs);
-			OBJ(i).traces(counter).raw=conv(hypot(use_data.*OBJ(i).references(k).x,use_data.*OBJ(i).references(k).y),demod_kernel,'same');
+			prod_x=conv(use_data.*OBJ(i).references(k).x,demod_kernel,'same');
+			prod_y=conv(use_data.*OBJ(i).references(k).y,demod_kernel,'same');
+			OBJ(i).traces(counter).raw=hypot(prod_x,prod_y);
 			counter=counter+1;
+
 
 		end
 	end
