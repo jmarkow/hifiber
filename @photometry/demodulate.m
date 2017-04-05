@@ -13,8 +13,11 @@ for i=1:length(OBJ)
 	for j=1:length(OBJ(i).traces)
 
 		% remove traces, and re-populate with the demodded version
+		% do all to all, and bandpass as needed...
 
-		
+		for k=1:length(OBJ(i).references)
 
+
+		end
 	end
 end

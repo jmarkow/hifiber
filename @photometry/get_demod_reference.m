@@ -47,7 +47,7 @@ if isempty(REF_FS)
 	% ref is now sin(2*pi*f0*t+phase_shift) and quadrature is sin(2*pi*f0*t+phase_shift+pi/2)
 
 	fvec=SAMPLING_RATE*[0:(sig_len/2)]/sig_len;
-	[~,loc]=max(mag_fft)
+	[~,loc]=max(mag_fft);
 
 	% frequency guess
 
@@ -62,12 +62,8 @@ else
 
 end
 
-% ts=[0:sig_len-1]/SAMPLING_RATE;
-% ts=ts(~isnan(SIG));
-
 % use all this crap to derive a least squares estimate of the reference
 % amp is rms obvi, baseline shift is mean obvi, freq is peak of fft OBVI, and phase shift is whatevs
-
 
 init_params=[nanstd(SIG) freq_init 0 nanmean(SIG)];
 
@@ -75,6 +71,7 @@ init_params=[nanstd(SIG) freq_init 0 nanmean(SIG)];
 TS=TS(~isnan(SIG));
 SIG=SIG(~isnan(SIG));
 
+TS=TS(:);
 SIG=SIG(:);
 
 fprintf('Initial parameters: %g\n',init_params)

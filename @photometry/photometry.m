@@ -54,7 +54,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 			obj.use_defaults;
 
 			TIMESTAMPS=TIMESTAMPS(:);
-			fs=round(1./mean(diff(TIMESTAMPS)));
+			fs=1./mean(diff(TIMESTAMPS));
 
 			[nsamples,nchannels]=size(DATA);
 
@@ -63,10 +63,9 @@ classdef photometry < handle & matlab.mixin.SetGet
 
 			for i=1:nchannels
 				obj.traces(i).raw=DATA(:,i);
-				obj.metadata.channels(i).type='data';
-				obj.metadata.channels(i).reference_channel=[];
-				obj.metadata.channels(i).name=sprintf('Ch%i',i);
-				obj.metadata_channels(i).mod_freq=[];
+				obj.metadata.traces(i).type='data';
+				obj.metadata.traces(i).name=sprintf('Ch%i',i);
+				obj.metadata.traces(i).mod_freq=[];
 			end
 
 			obj.set_channel_names(CHANNEL_NAMES);
