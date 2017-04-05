@@ -17,6 +17,8 @@ for i=1:length(OBJ)
 	traces=cat(2,OBJ(i).traces(:).raw);
 	counter=1;
 
+	% just set traces to empty while we do this perhaps...
+
 	for j=1:length(OBJ(i).traces)
 
 		% remove traces, and re-populate with the demodded version
@@ -28,11 +30,21 @@ for i=1:length(OBJ)
 
 			use_data=photometry.bandpass(traces(:,j),OBJ(i).metadata.traces(k).mod_freq,...
 				OBJ(i).options.photometry.mod_bandpass_bw,OBJ(i).metadata.fs);
-			prod_x=conv(use_data.*OBJ(i).references(k).x,demod_kernel,'same');
-			prod_y=conv(use_data.*OBJ(i).references(k).y,demod_kernel,'same');
-			OBJ(i).traces(counter).raw=hypot(prod_x,prod_y);
-			counter=counter+1;
 
+			% TODO:  much more intelligent handling of the pads fool
+
+			mult_x=use_data(:).*OBJ(i).references(k).x(:);
+			mult_y=use_data(:).*OBJ(i).references(k).y(:);
+
+			prod_x=conv(mult_x,demod_kernel,'same');
+			prod_y=conv(mult_y,demod_kernel,'same');
+
+			% nan out the edge foolz
+
+			OBJ(i).traces(counter).raw=hypot(prod_x,prod_y);
+			OBJ(i).traces(counter).raw(1:demod_samples/2)=nan;
+			OBJ(i).traces(counter).raw(end-demod_samples/2:end)=nan;
+			counter=counter+1;
 
 		end
 	end

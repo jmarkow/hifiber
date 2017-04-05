@@ -59,7 +59,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 			[nsamples,nchannels]=size(DATA);
 
 			obj.timestamps=TIMESTAMPS;
-			obj.metadata.fs=fs;
+			obj.metadata.fs=round(fs);
 
 			for i=1:nchannels
 				obj.traces(i).raw=DATA(:,i);
@@ -88,7 +88,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 		upd=proc_timer(nloops,varargin)
 		[new_ref,fun]=get_demod_reference(signal, ts, sampling_rate, ref_fs, ref_sig)
 		[new_sync,fun]=get_sync_signal(signal, ts, sampling_rate)
-
+		filt_data=bandpass(signal, fc, bw, sampling_rate)
 		% function obj=loadobj(s)
 		% 	if isstruct(s)
 		% 		newobj=photometry;

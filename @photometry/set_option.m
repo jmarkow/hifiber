@@ -4,8 +4,8 @@ function set_option(OBJ,CATEGORY,OPTION,OPTION_VAL);
 %
 %
 
-for i=1:length(OBJ(i))
-	if isprop(OBJ(i).options,CATEGORY)
+for i=1:length(OBJ)
+	if isfield(OBJ(i).options,CATEGORY)
 		if isfield(OBJ(i).options.(CATEGORY),OPTION)
 			use_class=class(OBJ(i).options.(CATEGORY).(OPTION));
 			if strcmp(use_class,class(OPTION_VAL))
