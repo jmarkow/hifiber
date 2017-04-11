@@ -88,8 +88,8 @@ init_fit_angle=angle(hilbert(FIT_FUN(init_params,TS)));
 data_angle=angle(hilbert(SIG));
 phase_diff=angle(mean(exp(1j.*(init_fit_angle(:)-data_angle(:)))));
 init_params(3)=angle(exp(1j.*(-phase_diff))); % it's 0 to start, so just get angle diff from 0 dawg
-
+opts=optimset('Display','off');
 %fprintf('Detected a phase difference of %g(rads), correcting before optimization\n',phase_diff);
 %opts=optimset('FinDiffRelStep',[.01 .05 .1 .2],'TolFun',1e-8,'TolX',1e-8);
 
-PARAMS=lsqnonlin(obj_fun,init_params,[init_params(1)*.75 freq_init-20 -2*pi 0],[init_params(2)*1.25 freq_init+20 2*pi 1]);
+PARAMS=lsqnonlin(obj_fun,init_params,[init_params(1)*.75 freq_init-20 -2*pi 0],[init_params(2)*1.25 freq_init+20 2*pi 1],opts);

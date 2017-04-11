@@ -63,9 +63,8 @@ classdef photometry < handle & matlab.mixin.SetGet
 
 			for i=1:nchannels
 				obj.traces(i).raw=DATA(:,i);
-				obj.metadata.traces(i).type='data';
-				obj.metadata.traces(i).name=sprintf('Ch%i',i);
-				obj.metadata.traces(i).mod_freq=[];
+				obj.traces(i).name=sprintf('Ch%i',i);
+				obj.traces(i).mod_freq=[];
 			end
 
 			obj.set_channel_names(CHANNEL_NAMES);

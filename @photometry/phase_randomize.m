@@ -27,11 +27,11 @@ for i=1:length(OBJ)
 
 			% generate nrands permutations
 
-			[~,permidx]=sort(rand(numel(ang),OBJ(i).options.photometry.nrands));
+			[~,permidx]=sort(rand(numel(ang),OBJ(i).options.nrands));
 
 			% synthesize the random signals
 
-			OBJ(i).traces(j).([ FIELD '_rnd' ])=single(real(ifft(repmat(mag,[1 OBJ(i).options.photometry.nrands]).*exp(1j.*ang(permidx)))));
+			OBJ(i).traces(j).([ FIELD '_rnd' ])=single(real(ifft(repmat(mag,[1 OBJ(i).options.nrands]).*exp(1j.*ang(permidx)))));
 
 			counter=counter+length(OBJ(i).traces(j).raw);
 			upd(counter);

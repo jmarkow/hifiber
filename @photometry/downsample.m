@@ -4,35 +4,52 @@ function downsample(OBJ)
 
 % anti-alias filtering
 
+valid_types={'dff','raw','baseline','baseline_rem'};
 
 fprintf('Downsampling data...\n');
 
 for i=1:length(OBJ)
 
-	% if mod(OBJ(i).metadata.fs,OBJ(i).options.photometry.new_fs)~=0
+	% if mod(OBJ(i).metadata.fs,OBJ(i).options.new_fs)~=0
 	% 	error('Downsampling is only supported for integer downsampling factors');
 	% end
 
-	% [b,a]=ellip(4,.2,40,[.75*(OBJ(i).options.photometry.new_fs/2)]/(OBJ(i).metadata.fs/2),'low');
-	% downsample_factor=OBJ(i).metadata.fs/OBJ(i).options.photometry.new_fs;
-	upd=photometry.proc_timer(length(OBJ(i).traces));
+	% [b,a]=ellip(4,.2,40,[.75*(OBJ(i).options.new_fs/2)]/(OBJ(i).metadata.fs/2),'low');
+	% downsample_factor=OBJ(i).metadata.fs/OBJ(i).options.new_fs;
+	%upd=photometry.proc_timer(length(OBJ(i).traces));
 
-	[p,q]=rat(OBJ(i).metadata.fs/OBJ(i).options.photometry.new_fs);
+	[p,q]=rat(OBJ(i).options.new_fs,OBJ(i).metadata.fs);
 
 	for j=1:length(OBJ(i).traces)
+
 		data_types=fieldnames(OBJ(i).traces(j));
+
 		for k=1:length(data_types)
-			%OBJ(i).traces(j).(data_types{k})=filtfilt(b,a,OBJ(i).traces(j).(data_types{k}));
-			%OBJ(i).traces(j).(data_types{k})=downsample(OBJ(i).traces(j).(data_types{k}),downsample_factor);
-			[OBJ(i).traces(j).(data_types{k}),new_timestamps]=resample(OBJ(i).traces(j).(data_types{k}),OBJ(i).timestamps,...
-				OBJ(i).options.photometry.new_fs);
+
+			if any(strcmp(data_types{k},valid_types))
+
+			% let MATLAB/god sort 'em out
+
+				[OBJ(i).traces(j).(data_types{k}),new_timestamps,b]=resample(OBJ(i).traces(j).(data_types{k}),OBJ(i).timestamps,...
+					OBJ(i).options.new_fs);
+
+				% guess what punk, some more *edge effects since the signal is assumed to go to zero at the edges, nan out
+				% taps/2 or pad intelligently
+
+				filt_length=numel(b)/OBJ(i).metadata.fs;
+				filt_length_res=round(filt_length*OBJ(i).options.new_fs)+10
+
+				OBJ(i).traces(j).(data_types{k})(1:filt_length_res)=nan;
+				OBJ(i).traces(j).(data_types{k})(end-filt_length_res:end)=nan;
+			end
 		end
-		upd(j);
+
+		%upd(j);
 	end
 
 	OBJ(i).timestamps=new_timestamps;
 
 	%OBJ(i).timestamps=downsample(OBJ(i).timestamps,downsample_factor);
-	OBJ(i).metadata.fs=OBJ.options.photometry.new_fs;
+	OBJ(i).metadata.fs=OBJ.options.new_fs;
 
 end

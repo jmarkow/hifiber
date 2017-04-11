@@ -4,11 +4,11 @@ function rereference(OBJ)
 
 % check the metadata for channels that have been assigned references
 
-to_reref=find(cellfun(@(x) ~isempty(x),{OBJ.metadata.channels(:).reference_channel}));
+to_reref=find(cellfun(@(x) ~isempty(x),{OBJ.traces(:).reference_channel}));
 
 for i=to_reref
 
-	switch lower(OBJ.options.photometry.rereference_method(1))
+	switch lower(OBJ.options.rereference_method(1))
 
 	case 'v'
 
@@ -17,10 +17,12 @@ for i=to_reref
 		% not factor into this calculation)
 
 		sig=OBJ.traces(i).baseline_rem;
-		reference=OBJ.traces(OBJ.metadata.channels(i).reference_channel).baseline_rem;
+		reference=OBJ.traces(OBJ.traces(i).reference_channel).baseline_rem;
 
-		num=sig'*reference;
-		den=reference'*reference;
+		use_samples=~(isnan(sig)|isnan(reference));
+
+		num=sig(use_samples)'*reference(use_samples);
+		den=reference(use_samples)'*reference(use_samples);
 		OBJ.traces(i).reref=sig-reference*(num/den);
 
 	case 'l'
