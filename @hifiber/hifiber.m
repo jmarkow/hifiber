@@ -1,4 +1,4 @@
-classdef photometry < handle & matlab.mixin.SetGet
+classdef hifiber < handle & matlab.mixin.SetGet
 	% This class implements everything you need to extract raw data
 	% collected from the Kinect v2 (with or without cable)
 
@@ -32,7 +32,7 @@ classdef photometry < handle & matlab.mixin.SetGet
 
 	methods
 
-		function obj=photometry(DATA,TIMESTAMPS,CHANNEL_NAMES)
+		function obj=hifiber(DATA,TIMESTAMPS,CHANNEL_NAMES)
 
 			if nargin<3
 				CHANNEL_NAMES={};
