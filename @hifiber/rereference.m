@@ -4,33 +4,36 @@ function rereference(OBJ)
 
 % check the metadata for channels that have been assigned references
 
-to_reref=find(cellfun(@(x) ~isempty(x),{OBJ.traces(:).reference_channel}));
+for i=1:length(OBJ)
+	to_reref=find(cellfun(@(x) ~isempty(x),{OBJ(i).traces(:).reference_channel}));
+	for j=to_reref
 
-for i=to_reref
+		switch lower(OBJ(i).options.rereference_method(1))
 
-	switch lower(OBJ.options.rereference_method(1))
+			case 'v'
 
-	case 'v'
+			% vector rejection
+			% make sure that the baseline has been subtracted first (slow drift should
+			% not factor into this calculation)
 
-		% vector rejection
-		% make sure that the baseline has been subtracted first (slow drift should
-		% not factor into this calculation)
+			sig=OBJ(i).traces(j).baseline_rem;
+			reference=OBJ.traces(OBJ(i).traces(j).reference_channel).baseline_rem;
 
-		sig=OBJ.traces(i).baseline_rem;
-		reference=OBJ.traces(OBJ.traces(i).reference_channel).baseline_rem;
+			use_samples=~(isnan(sig)|isnan(reference));
 
-		use_samples=~(isnan(sig)|isnan(reference));
+			num=sig(use_samples)'*reference(use_samples);
+			den=reference(use_samples)'*reference(use_samples);
+			OBJ(i).traces(j).reref=sig-reference*(num/den);
+			OBJ(i).traces(j).dff=OBJ(i).traces(j).reref./OBJ(i).traces(j).baseline;
 
-		num=sig(use_samples)'*reference(use_samples);
-		den=reference(use_samples)'*reference(use_samples);
-		OBJ.traces(i).reref=sig-reference*(num/den);
 
-	case 'l'
+			case 'l'
 
-		% least squares (should give same answer, leaving here for completeness)
+			% least squares (should give same answer, leaving here for completeness)
 
-	otherwise
-		error('Did not understand rereferencing method ((v)ector and (l)east squares)');
+			otherwise
+			error('Did not understand rereferencing method ((v)ector and (l)east squares)');
+		end
+
 	end
-
 end

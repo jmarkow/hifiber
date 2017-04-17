@@ -54,7 +54,7 @@ classdef hifiber < handle & matlab.mixin.SetGet
 			obj.use_defaults;
 
 			TIMESTAMPS=TIMESTAMPS(:);
-			fs=1./mean(diff(TIMESTAMPS));
+			fs=1./nanmean(diff(TIMESTAMPS));
 
 			[nsamples,nchannels]=size(DATA);
 
