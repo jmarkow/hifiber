@@ -34,7 +34,7 @@ for i=1:length(OBJ)
 
 			% bandpass for the reference fs
 
-			use_data=photometry.bandpass(traces(:,j),mod_freq(k),...
+			use_data=hifiber.bandpass(traces(:,j),mod_freq(k),...
 				OBJ(i).options.mod_bandpass_bw,OBJ(i).metadata.fs);
 
 			% TODO:  much more intelligent handling of the pads fool

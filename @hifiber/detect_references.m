@@ -22,13 +22,13 @@ for i=1:length(OBJ)
 		use_data=use_data(1:min(OBJ(i).options.ref_samples,data_len));
 
 		if OBJ(i).options.mod_bandpass
-			use_data=photometry.bandpass(use_data,OBJ(i).traces(j).mod_freq,...
+			use_data=hifiber.bandpass(use_data,OBJ(i).traces(j).mod_freq,...
 				OBJ(i).options.mod_bandpass_bw,OBJ(i).metadata.fs);
 		end
 
 		tvec=[0:numel(OBJ(i).traces(j).raw)-1]/OBJ(i).metadata.fs;
 
-		[params,fit_fun]=photometry.get_demod_reference(use_data,...
+		[params,fit_fun]=hifiber.get_demod_reference(use_data,...
 			tvec(1:length(use_data)),OBJ(i).metadata.fs,OBJ(i).traces(j).mod_freq);
 
 		% reset amplitude to 1
