@@ -16,7 +16,7 @@ for i=1:length(OBJ)
 
 	% [b,a]=ellip(4,.2,40,[.75*(OBJ(i).options.new_fs/2)]/(OBJ(i).metadata.fs/2),'low');
 	% downsample_factor=OBJ(i).metadata.fs/OBJ(i).options.new_fs;
-	%upd=photometry.proc_timer(length(OBJ(i).traces));
+	upd=hifiber.proc_timer(length(OBJ(i).traces));
 
 	[p,q]=rat(OBJ(i).options.new_fs,OBJ(i).metadata.fs);
 	nans=isnan(OBJ(i).timestamps);
@@ -40,7 +40,7 @@ for i=1:length(OBJ)
 				% taps/2 or pad intelligently
 
 				filt_length=numel(b)/OBJ(i).metadata.fs;
-				filt_length_res=round(filt_length*OBJ(i).options.new_fs)+10
+				filt_length_res=round(filt_length*OBJ(i).options.new_fs)+10;
 
 				OBJ(i).traces(j).(data_types{k})(1:filt_length_res)=nan;
 				OBJ(i).traces(j).(data_types{k})(end-filt_length_res:end)=nan;
@@ -48,7 +48,8 @@ for i=1:length(OBJ)
 			end
 		end
 
-		%upd(j);
+		upd(j);
+
 	end
 
 	new_timestamps=OBJ(i).timestamps(round(new_ts*OBJ(i).metadata.fs)+1);

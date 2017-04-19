@@ -8,6 +8,7 @@ function demodulate(OBJ)
 % (i.e. multiply by ref and 90 deg phase-shift)
 
 % in other words, hypot it out and smooth yeahhhhhh
+fprintf('Demodulating signals...\n');
 
 for i=1:length(OBJ)
 
@@ -22,9 +23,9 @@ for i=1:length(OBJ)
 	OBJ(i).traces=[];
 
 	counter=1;
+	upd=hifiber.proc_timer(ntraces*length(OBJ(i).references));
 
 	% just set traces to empty while we do this perhaps...
-
 	for j=1:ntraces
 
 		% remove traces, and re-populate with the demodded version
@@ -54,8 +55,11 @@ for i=1:length(OBJ)
 			OBJ(i).traces(counter).type='Data';
 			OBJ(i).traces(counter).name=sprintf('Ch %i demod ref %i',j,k);
 
+			upd(counter);
 			counter=counter+1;
 
 		end
+
+
 	end
 end
