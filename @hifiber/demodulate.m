@@ -13,7 +13,10 @@ fprintf('Demodulating signals...\n');
 for i=1:length(OBJ)
 
 	demod_samples=round(OBJ(i).metadata.fs*OBJ(i).options.demod_tau);
-	demod_kernel=ones(demod_samples,1)/demod_samples;
+	%demod_kernel=ones(demod_samples,1)/demod_samples;
+
+	demod_hz=1/(OBJ(i).options.demod_tau);
+	[b,a]=butter(3,[demod_hz]/(OBJ(i).metadata.fs/2),'low');
 
 	ntraces=length(OBJ(i).traces);
 	traces=cat(2,OBJ(i).traces(:).raw);
@@ -45,8 +48,11 @@ for i=1:length(OBJ)
 
 			% linear conv zero pads the end of u, be sure to nan that ish out
 
-			prod_x=conv(mult_x,demod_kernel,'same');
-			prod_y=conv(mult_y,demod_kernel,'same');
+			%prod_x=conv(mult_x,demod_kernel,'same');
+			%prod_y=conv(mult_y,demod_kernel,'same');
+
+			prod_x=filtfilt(b,a,mult_x);
+			prod_y=filtfilt(b,a,mult_y);
 
 			OBJ(i).traces(counter).raw=hypot(prod_x,prod_y);
 			OBJ(i).traces(counter).raw(1:(demod_samples+1))=nan;
