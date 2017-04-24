@@ -68,4 +68,9 @@ for i=1:length(OBJ)
 
 
 	end
+
+	% after demodulation the references don't serve much a purpose
+
+	OBJ(i).references=[];
+
 end

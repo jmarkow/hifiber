@@ -7,7 +7,7 @@ function get_baseline(OBJ)
 for i=1:length(OBJ)
 
 	if length(OBJ(i).traces)>0
-		%upd=photometry.proc_timer(length(OBJ(i).traces));
+		upd=hifiber.proc_timer(length(OBJ(i).traces));
 	end
 
 	for j=1:length(OBJ(i).traces)
@@ -28,7 +28,7 @@ for i=1:length(OBJ)
 
 		baseline=OBJ(i).options.baseline_fcn(proc_mat)';
 		OBJ(i).traces(j).baseline=baseline(:);
-		%upd(j);
+		upd(j);
 
 	end
 end

@@ -63,8 +63,13 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 			for i=1:nchannels
 				obj.traces(i).raw=DATA(:,i);
+				obj.traces(i).baseline=[];
+				obj.traces(i).baseline_rem=[];
+				obj.traces(i).reref=[];
+				obj.traces(i).dff=[];
 				obj.traces(i).name=sprintf('Ch%i',i);
 				obj.traces(i).mod_freq=[];
+				obj.traces(i).reference_channel=[];
 			end
 
 			obj.set_channel_names(CHANNEL_NAMES);

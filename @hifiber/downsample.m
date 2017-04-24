@@ -46,7 +46,9 @@ for i=1:length(OBJ)
 
 	end
 
-	upd=hifiber.proc_timer(length(OBJ(i).traces));
+	if length(OBJ(i).references)>0
+		upd=hifiber.proc_timer(length(OBJ(i).references));
+	end
 
 	for j=1:length(OBJ(i).references)
 
