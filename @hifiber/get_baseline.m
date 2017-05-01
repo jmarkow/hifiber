@@ -22,7 +22,7 @@ for i=1:length(OBJ)
 		end
 
 		padded_data=[use_data(floor(nwin/2):-1:1);use_data;use_data(end-floor(nwin/2-1):1:end)];
-		proc_mat=vec2mat(padded_data,nwin,nwin-1);
+		proc_mat=hifiber.vec2mat(padded_data,nwin,nwin-1);
 
 		% apply the rolling statistic
 
