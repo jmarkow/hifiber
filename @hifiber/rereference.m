@@ -31,7 +31,7 @@ for i=1:length(OBJ)
 			% not factor into this calculation)
 
 			sig=OBJ(i).traces(j).baseline_rem;
-			reference=OBJ.traces(OBJ(i).traces(j).reference_channel).baseline_rem;
+			reference=OBJ(i).traces(OBJ(i).traces(j).reference_channel).baseline_rem;
 
 			use_samples=~(isnan(sig)|isnan(reference));
 
