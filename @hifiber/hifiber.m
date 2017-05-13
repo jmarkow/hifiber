@@ -94,7 +94,8 @@ classdef hifiber < handle & matlab.mixin.SetGet
 		[new_sync,fun]=get_sync_signal(signal, ts, sampling_rate)
 		filt_data=bandpass(signal, fc, bw, sampling_rate)
 		mat=vec2mat(vec,nwin,noverlap)
-		
+		[proj,residuals,rescaled]=vector_rejection(sig,reference)
+
 		% function obj=loadobj(s)
 		% 	if isstruct(s)
 		% 		newobj=photometry;

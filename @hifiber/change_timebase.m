@@ -4,7 +4,7 @@ function change_timebase(OBJ,NEW_TIMESTAMPS)
 %
 %
 
-valid_types={'dff','raw','baseline','baseline_rem','reref'};
+valid_types={'dff','raw','baseline','baseline_rem','reref','reference'};
 
 % interpolate all traces using the new timestamps
 
