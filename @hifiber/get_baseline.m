@@ -28,6 +28,11 @@ for i=1:length(OBJ)
 		% apply the rolling statistic
 
 		baseline=OBJ(i).options.baseline_fcn(proc_mat)';
+
+		if OBJ(i).options.baseline_post_smooth>0
+			baseline=smooth(baseline,OBJ(i).options.baseline_post_smooth*OBJ(i).metadata.fs);
+		end
+
 		OBJ(i).traces(j).baseline=baseline(:);
 		upd(j);
 

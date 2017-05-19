@@ -92,7 +92,7 @@ classdef hifiber < handle & matlab.mixin.SetGet
 		upd=proc_timer(nloops,varargin)
 		[new_ref,fun]=get_demod_reference(signal, ts, sampling_rate, ref_fs, ref_sig)
 		[new_sync,fun]=get_sync_signal(signal, ts, sampling_rate)
-		filt_data=bandpass(signal, fc, bw, sampling_rate)
+		filt_data=bandpass(signal, fc, bw, sampling_rate, order, type, ripple, attenuation)
 		mat=vec2mat(vec,nwin,noverlap)
 		[proj,residuals,rescaled]=vector_rejection(sig,reference)
 

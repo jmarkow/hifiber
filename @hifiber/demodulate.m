@@ -13,10 +13,16 @@ fprintf('Demodulating signals...\n');
 for i=1:length(OBJ)
 
 	demod_samples=round(OBJ(i).metadata.fs*OBJ(i).options.demod_tau);
-	%demod_kernel=ones(demod_samples,1)/demod_samples;
-
 	demod_hz=1/(OBJ(i).options.demod_tau);
-	[b,a]=butter(3,[demod_hz]/(OBJ(i).metadata.fs/2),'low');
+
+	switch lower(OBJ(i).options.demod_filter_type(1))
+	case 'e'
+		[b,a]=ellip(OBJ(i).options.demod_filter_order,...
+			OBJ(i).options.demod_filter_ripple,OBJ(i).options.demod_filter_attenuation,...
+			[demod_hz]/(OBJ(i).metadata.fs/2),'low');
+	case 'b'
+		[b,a]=butter(OBJ(i).options.demod_filter_order,[demod_hz]/(OBJ(i).metadata.fs/2),'low');
+	end
 
 	ntraces=length(OBJ(i).traces);
 	traces=cat(2,OBJ(i).traces(:).raw);
@@ -71,6 +77,6 @@ for i=1:length(OBJ)
 
 	% after demodulation the references don't serve much a purpose
 
-	OBJ(i).references=[];
+	%OBJ(i).references=[];
 
 end
