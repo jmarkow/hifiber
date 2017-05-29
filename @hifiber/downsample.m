@@ -12,7 +12,7 @@ for i=1:length(OBJ)
 
 	upd=hifiber.proc_timer(length(OBJ(i).traces));
 
-	[p,q]=rat(OBJ(i).options.new_fs,OBJ(i).metadata.fs);
+	%[p,q]=rat(OBJ(i).options.new_fs/OBJ(i).metadata.fs);
 	nans=isnan(OBJ(i).timestamps);
 
 	for j=1:length(OBJ(i).traces)

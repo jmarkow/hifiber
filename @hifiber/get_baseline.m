@@ -22,12 +22,22 @@ for i=1:length(OBJ)
 		end
 
 		%padded_data=[use_data(floor(nwin/2):-1:1);use_data;use_data(end-floor(nwin/2-1):1:end)];
-		padded_data=[nan(floor(nwin/2),1)*use_data(1);use_data;nan(floor(nwin/2),1)*use_data(end)];
-		proc_mat=hifiber.vec2mat(padded_data,nwin,nwin-1);
+		% padded_data=[nan(floor(nwin/2),1)*use_data(1);use_data;nan(floor(nwin/2),1)*use_data(end)];
+		% proc_mat=hifiber.vec2mat(padded_data,nwin,nwin-1);
+		%
+		% % apply the rolling statistic
+		%
+		% baseline=OBJ(i).options.baseline_fcn(proc_mat)';
 
-		% apply the rolling statistic
+		% colfilt by defaults pads w/ stuff we don't want to use, simply pad with nans
+		% and discard everything related to how colfilt itself pads the data
 
-		baseline=OBJ(i).options.baseline_fcn(proc_mat)';
+		padded_data=[nan(floor(nwin/2),1);use_data;nan(floor(nwin/2),1)];
+		baseline=colfilt(padded_data(:),[nwin 1],[nwin*3 1],'sliding',OBJ(i).options.baseline_fcn);
+
+		left_edge=floor(nwin/2)+1;
+		nsamples=numel(use_data);
+		baseline=baseline(left_edge:left_edge+(nsamples-1));
 
 		if OBJ(i).options.baseline_post_smooth>0
 			baseline=smooth(baseline,OBJ(i).options.baseline_post_smooth*OBJ(i).metadata.fs);
