@@ -32,10 +32,15 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 	methods
 
-		function obj=hifiber(DATA,TIMESTAMPS,CHANNEL_NAMES)
+		function obj=hifiber(DATA,TIMESTAMPS,FS,CHANNEL_NAMES)
+
+
+			if nargin<4
+				CHANNEL_NAMES={};
+			end
 
 			if nargin<3
-				CHANNEL_NAMES={};
+				FS=[];
 			end
 
 			if nargin<2
@@ -54,7 +59,11 @@ classdef hifiber < handle & matlab.mixin.SetGet
 			obj.use_defaults;
 
 			TIMESTAMPS=TIMESTAMPS(:);
-			fs=1./nanmean(diff(TIMESTAMPS));
+			if isempty(FS)
+				fs=1./nanmean(diff(TIMESTAMPS));
+			else
+				fs=FS;
+			end
 
 			[nsamples,nchannels]=size(DATA);
 
