@@ -37,6 +37,6 @@ for i=1:length(OBJ)
 		OBJ(i).references(j).y=fit_fun([1 params(2) params(3)+pi/2 0],tvec);
 		OBJ(i).references(j).x=OBJ(i).references(j).x(:);
 		OBJ(i).references(j).y=OBJ(i).references(j).y(:);
-		
+
 	end
 end
