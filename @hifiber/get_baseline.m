@@ -33,7 +33,7 @@ for i=1:length(OBJ)
 		% and discard everything related to how colfilt itself pads the data
 
 		padded_data=[nan(floor(nwin/2),1);use_data;nan(floor(nwin/2),1)];
-		baseline=colfilt(padded_data(:),[nwin 1],[nwin*3 1],'sliding',OBJ(i).options.baseline_fcn);
+		baseline=colfilt(padded_data(:),[nwin 1],[nwin*2 1],'sliding',OBJ(i).options.baseline_fcn);
 
 		left_edge=floor(nwin/2)+1;
 		nsamples=numel(use_data);
