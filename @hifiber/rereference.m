@@ -91,7 +91,10 @@ for i=1:length(OBJ)
 
 		% fix any sign flips, largest component is always positive
 
+        
 		[~,idx]=max(abs(w),[],2);
+        w
+        idx
 		sn=sign(w(idx(:)+[0;2]));
 		w=w.*repmat(sn,[1 2]);
 
