@@ -91,15 +91,14 @@ for i=1:length(OBJ)
 
 		% fix any sign flips, largest component is always positive
 
-		[~,idx]=max(abs(w),[],2);
-		sn=sign(w(idx(:)+[0;2]));
-		w=w.*repmat(sn,[1 2]);
-
 		if isempty(w)
 			fprintf('Fast ica failed...returning\n');
 			return;
 		end
 
+		[~,idx]=max(abs(w),[],2);
+		sn=sign(w(idx(:)+[0;2]));
+		w=w.*repmat(sn,[1 2]);
 		OBJ(i).metadata.ica.w=w;
 
 		% find the component with the largest ref-channel weight
