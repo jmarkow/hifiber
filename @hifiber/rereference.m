@@ -98,6 +98,11 @@ for i=1:length(OBJ)
 		sn=sign(w(idx(:)+[0;2]));
 		w=w.*repmat(sn,[1 2]);
 
+		if isempty(w)
+			fprintf('Fast ica failed...returning\n');
+			return;
+		end
+
 		OBJ(i).metadata.ica.w=w;
 
 		% find the component with the largest ref-channel weight
