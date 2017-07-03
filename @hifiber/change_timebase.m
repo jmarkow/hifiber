@@ -53,23 +53,31 @@ for i=1:length(OBJ)
 				[bins,~,bin_idx]=unique(NEW_TIMESTAMPS);
 				bins(isnan(bins))=[];
 
+				upd=hifiber.proc_timer(length(bins),'frequency',1e3);
+
 				for k=1:length(bins)
-					if sum(NEW_TIMESTAMPS==bins(k))>1
-						new_traces(NEW_TIMESTAMPS==bins(k),:)=mean(concat(OBJ(i).timestamps==bins(k),:));
+					nassign=sum(NEW_TIMESTAMPS==bins(k));
+
+					if sum(OBJ(i).timestamps==bins(k))>1
+						tmp=mean(concat(OBJ(i).timestamps==bins(k),:));
 					else
-						new_traces(NEW_TIMESTAMPS==bins(k),:)=concat(OBJ(i).timestamps==bins(k),:);
+						tmp=concat(OBJ(i).timestamps==bins(k),:);
+					end
+
+					if ~isempty(tmp)
+
+					if nassign>1
+						new_traces(NEW_TIMESTAMPS==bins(k),:)=repmat(tmp,[nassign 1]);
+					elseif nassign==1
+						new_traces(NEW_TIMESTAMPS==bins(k),:)=tmp;
+					else
 					end
 				end
 
-				nans=find(isnan(new_traces(:,1)));
-				notnans=find(~isnan(new_traces(:,1)));
-				left_edge=min(notnans);
-				right_edge=max(notnans);
-				nans(nans<left_edge)=[];
-				nans(nans>right_edge)=[];
-				nans
-				pause();
-				new_traces(nans,:)=interp1(notnans,new_traces(notnans,:),nans,'linear');
+					upd(k);
+
+				end
+
 
 				for k=1:ntraces
 					OBJ(i).traces(k).(trace_types{j})=new_traces(:,k);
