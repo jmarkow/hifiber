@@ -3,12 +3,19 @@ function get_baseline(OBJ)
 % detrends the data using a sliding window stat
 % first use vec2mat to reformat data, then apply function to each window
 
+%
+
+total=OBJ.get_trace_total;
+
+if total==0
+	return;
+end
+
+counter=1;
+
+upd=hifiber.proc_timer(total);
 
 for i=1:length(OBJ)
-
-	if length(OBJ(i).traces)>0
-		upd=hifiber.proc_timer(length(OBJ(i).traces));
-	end
 
 	for j=1:length(OBJ(i).traces)
 
@@ -44,7 +51,8 @@ for i=1:length(OBJ)
 		end
 
 		OBJ(i).traces(j).baseline=baseline(:);
-		upd(j);
+		upd(counter);
+		counter=counter+1;
 
 	end
 end

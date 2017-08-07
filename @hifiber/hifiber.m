@@ -86,12 +86,12 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 		end
 
-		% function saveobj(obj)
-		% 	s.options=obj.options;
-		% 	s.traces=obj.traces;
-		% 	s.metadata=obj.metadata;
-		% 	s.timestamps=obj.timestamps;
-		% end
+		function s = saveobj(obj)
+			use_names=properties(obj);
+			for i=1:length(use_names)
+				s.(use_names{i})=obj.(use_names{i});
+			end
+		end
 
 	end
 
@@ -105,18 +105,18 @@ classdef hifiber < handle & matlab.mixin.SetGet
 		mat=vec2mat(vec,nwin,noverlap)
 		[proj,residuals,rescaled]=vector_rejection(sig,reference)
 
-		% function obj=loadobj(s)
-		% 	if isstruct(s)
-		% 		newobj=photometry;
-		% 		newobj.options=s.options;
-		% 		newobj.traces=s.traces;
-		% 		newobj.metadata=s.metadata;
-		% 		newobj.timestamps=s.timestamps;
-		% 		obj=newobj;
-		% 	end
-		%
-		% end
+		function obj = loadobj(s)
+				if isstruct(s)
+					use_names=fieldnames(s);
+					obj=hifiber;
+					for i=1:length(use_names)
+						obj.(use_names{i})=s.(use_names{i});
+					end
+				else
+					obj=s;
+				end
 
+			end
 	end
 
 end
