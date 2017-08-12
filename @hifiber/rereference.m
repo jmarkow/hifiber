@@ -146,8 +146,8 @@ for i=1:length(OBJ)
 			OBJ(i).traces(j).reference=use_demixed.*scale_coef;
 			OBJ(i).traces(j).reference_scale=scale_coef;
 			reref=(OBJ(i).traces(j).baseline_rem-OBJ(i).traces(j).reference);
-			OBJ(i).traces(j).dff=reref./OBJ(i).traces(j).baseline;
-
+			OBJ(i).traces(j).dff_reref=reref./OBJ(i).traces(j).baseline;
+			
 		end
 
 
