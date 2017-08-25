@@ -6,6 +6,8 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 	properties
 
+		user_data
+
 	end
 
 	% stuff the user can see but can't modify without using a class method
