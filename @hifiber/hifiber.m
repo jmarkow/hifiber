@@ -12,7 +12,7 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 	% stuff the user can see but can't modify without using a class method
 
-	properties (GetAccess=public,SetAccess=private)
+	properties (GetAccess=public,SetAccess={?hifiber,?phanalysis})
 
 		options
 		timestamps
