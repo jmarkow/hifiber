@@ -12,7 +12,7 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 	% stuff the user can see but can't modify without using a class method
 
-	properties (GetAccess=public,SetAccess={?hifiber,?phanalysis})
+	properties (GetAccess=public,SetAccess={?hifiber,?phanalysis,?kinect_extract})
 
 		options
 		timestamps
@@ -76,8 +76,8 @@ classdef hifiber < handle & matlab.mixin.SetGet
 				obj.traces(i).raw=DATA(:,i);
 				obj.traces(i).baseline=[];
 				obj.traces(i).baseline_rem=[];
-				obj.traces(i).reref=[];
 				obj.traces(i).dff=[];
+        obj.traces(i).reref=[];
 				obj.traces(i).name=sprintf('Ch%i',i);
 				obj.traces(i).mod_freq=[];
 				obj.traces(i).reference_channel=[];
