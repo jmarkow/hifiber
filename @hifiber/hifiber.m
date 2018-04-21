@@ -7,6 +7,7 @@ classdef hifiber < handle & matlab.mixin.SetGet
 	properties
 
 		user_data
+		traces
 
 	end
 
@@ -16,7 +17,6 @@ classdef hifiber < handle & matlab.mixin.SetGet
 
 		options
 		timestamps
-		traces
 		references
 		metadata
 		status
