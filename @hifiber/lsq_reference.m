@@ -1,4 +1,4 @@
-function [B,RESIDUALS,RESCALED]=lsq_reference(SIG,REFERENCE,BOUNDS)
+function [B, RESIDUALS, RESCALED] = lsq_reference(SIG, REFERENCE, BOUNDS)
 %
 %
 %

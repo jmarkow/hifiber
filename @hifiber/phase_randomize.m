@@ -1,41 +1,50 @@
-function phase_randomize(OBJ,FIELD)
+function phase_randomize(OBJ, FIELD)
 %
 %
 %
 
-nsamples=0;
-for i=1:length(OBJ)
-	if length(OBJ(i).traces)>0
-		for j=1:length(OBJ(i).traces)
-			nsamples=nsamples+length(OBJ(i).traces(1).raw);
-		end
-	end
+nsamples = 0;
+
+for i = 1:length(OBJ)
+
+    if length(OBJ(i).traces) > 0
+
+        for j = 1:length(OBJ(i).traces)
+            nsamples = nsamples + length(OBJ(i).traces(1).raw);
+        end
+
+    end
+
 end
 
-upd=kinect_extract.proc_timer(nsamples);
-counter=0;
+upd = kinect_extract.proc_timer(nsamples);
+counter = 0;
 
-for i=1:length(OBJ)
-	for j=1:length(OBJ(i).traces)
-		if isfield(OBJ(i).traces(j),FIELD)
+for i = 1:length(OBJ)
 
-			tmp_fft=fft(OBJ(i).traces(j).(FIELD));
-			mag=abs(tmp_fft);
-			ang=angle(tmp_fft);
-			mag=mag(:);
-			ang=ang(:);
+    for j = 1:length(OBJ(i).traces)
 
-			% generate nrands permutations
+        if isfield(OBJ(i).traces(j), FIELD)
 
-			[~,permidx]=sort(rand(numel(ang),OBJ(i).options.nrands));
+            tmp_fft = fft(OBJ(i).traces(j).(FIELD));
+            mag = abs(tmp_fft);
+            ang = angle(tmp_fft);
+            mag = mag(:);
+            ang = ang(:);
 
-			% synthesize the random signals
+            % generate nrands permutations
 
-			OBJ(i).traces(j).([ FIELD '_rnd' ])=single(real(ifft(repmat(mag,[1 OBJ(i).options.nrands]).*exp(1j.*ang(permidx)))));
+            [~, permidx] = sort(rand(numel(ang), OBJ(i).options.nrands));
 
-			counter=counter+length(OBJ(i).traces(j).raw);
-			upd(counter);
+            % synthesize the random signals
 
-		end
-	end
+            OBJ(i).traces(j).([FIELD '_rnd']) = single(real(ifft(repmat(mag, [1 OBJ(i).options.nrands]) .* exp(1j .* ang(permidx)))));
+
+            counter = counter + length(OBJ(i).traces(j).raw);
+            upd(counter);
+
+        end
+
+    end
+
 end
